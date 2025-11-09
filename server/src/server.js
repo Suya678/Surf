@@ -622,9 +622,20 @@ app.get("/api/booking/pending", isAuthenticated, async (req, res) => {
 
   try {
     const query = `
-      SELECT * FROM "booking"
-      WHERE user_id = $1 AND status = 'Pending'
-    `;
+  SELECT 
+    b.booking_id,
+    b.user_id,
+    b.listing_id,
+    b.start_date,
+    b.end_date,
+    b.status,
+    l.address,
+    l.city,
+    l.province
+  FROM "booking" b
+  INNER JOIN "listing" l ON b.listing_id = l.listing_id
+  WHERE b.user_id = $1 AND b.status = 'Pending'
+`;
     const values = [user_id];
     const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);
@@ -643,9 +654,20 @@ app.get("/api/booking/approved", isAuthenticated, async (req, res) => {
 
   try {
     const query = `
-      SELECT * FROM "booking"
-      WHERE user_id = $1 AND status = 'Approved'
-    `;
+  SELECT 
+    b.booking_id,
+    b.user_id,
+    b.listing_id,
+    b.start_date,
+    b.end_date,
+    b.status,
+    l.address,
+    l.city,
+    l.province
+  FROM "booking" b
+  INNER JOIN "listing" l ON b.listing_id = l.listing_id
+  WHERE b.user_id = $1 AND b.status = 'Approved'
+`;
     const values = [user_id];
     const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);
@@ -664,9 +686,20 @@ app.get("/api/booking/past", isAuthenticated, async (req, res) => {
 
   try {
     const query = `
-      SELECT * FROM "booking"
-      WHERE user_id = $1 AND (status = 'Completed' OR status = 'Rejected')
-    `;
+  SELECT 
+    b.booking_id,
+    b.user_id,
+    b.listing_id,
+    b.start_date,
+    b.end_date,
+    b.status,
+    l.address,
+    l.city,
+    l.province
+  FROM "booking" b
+  INNER JOIN "listing" l ON b.listing_id = l.listing_id
+  WHERE b.user_id = $1 AND (b.status = 'Completed' OR b.status = 'Rejected')
+`;
     const values = [user_id];
     const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);

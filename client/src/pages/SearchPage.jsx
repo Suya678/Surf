@@ -14,37 +14,6 @@ import {
 import toast from "react-hot-toast";
 
 export default function SearchPage() {
-  const testMapWithFakeData = () => {
-    const fakeListings = [
-      {
-        listing_id: "test-1",
-        title: "Test Listing Toronto",
-        city: "Toronto",
-        province: "ON",
-        address: "123 Test St",
-        latitude: 43.6532,
-        longitude: -79.3832,
-        guest_limit: 2,
-        url: "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
-      },
-      {
-        listing_id: "test-2",
-        title: "Test Listing Vancouver",
-        city: "Vancouver",
-        province: "BC",
-        address: "456 Test Ave",
-        latitude: 49.2827,
-        longitude: -123.1207,
-        guest_limit: 4,
-        url: "https://images.unsplash.com/photo-1570129477492-45c003edd2be",
-      },
-    ];
-
-    setResults(fakeListings);
-    setHasSearched(true);
-    setViewMode("map");
-  };
-
   const [searchParams, setSearchParams] = useState({
     city: "",
     province: "",
@@ -139,12 +108,6 @@ export default function SearchPage() {
       <NavBarGuest />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <button
-          onClick={testMapWithFakeData}
-          className="btn btn-secondary btn-sm"
-        >
-          Test Map with Fake Data
-        </button>
         {/* Search Form */}
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body">

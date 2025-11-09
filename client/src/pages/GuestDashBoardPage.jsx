@@ -28,8 +28,6 @@ export default function GuestDashboardPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-
-      // Fetch all three categories in parallel
       const [pendingRes, approvedRes, pastRes] = await Promise.all([
         fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/api/booking/pending`, {
           method: "GET",
@@ -113,9 +111,9 @@ export default function GuestDashboardPage() {
               <h3 className="card-title text-lg font-bold">
                 {booking.listing_title || "Listing"}
               </h3>
-              <p className="text-sm opacity-70 flex items-center gap-1 mt-1">
-                <MapPin className="w-4 h-4" />
-                {booking.listing_city}, {booking.listing_province}
+              <p className="text-sm opacity-70 flex items-center  justify-centre gap-1 mt-1">
+                <MapPin className="w-2 h-2" />
+                {`${booking.address}, ${booking.city}, ${booking.province}`}
               </p>
             </div>
             <div
@@ -228,113 +226,82 @@ export default function GuestDashboardPage() {
                   total
                 </p>
               </div>
-              <Link to="/search">
-                <button className="btn btn-primary">Search Listings</button>
-              </Link>
             </div>
 
-            {totalBookings === 0 ? (
-              // Empty state
-              <div className="text-center py-16">
-                <Home className="w-20 h-20 mx-auto mb-6 opacity-30" />
-                <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                  No bookings yet
-                </h3>
-                <p className="text-base md:text-lg opacity-80 mb-6 max-w-md mx-auto">
-                  Start your search to find the perfect place to stay
-                </p>
-                <Link to="/search">
-                  <button className="btn btn-primary btn-lg">
-                    Search Listings
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <>
-                {/* Tabs */}
-                <div className="tabs tabs-boxed bg-base-200 mb-6">
-                  <button
-                    className={`tab ${
-                      activeTab === "pending" ? "tab-active" : ""
-                    }`}
-                    onClick={() => setActiveTab("pending")}
-                  >
-                    Pending ({bookings.pending.length})
-                  </button>
-                  <button
-                    className={`tab ${
-                      activeTab === "approved" ? "tab-active" : ""
-                    }`}
-                    onClick={() => setActiveTab("approved")}
-                  >
-                    Approved ({bookings.approved.length})
-                  </button>
-                  <button
-                    className={`tab ${
-                      activeTab === "past" ? "tab-active" : ""
-                    }`}
-                    onClick={() => setActiveTab("past")}
-                  >
-                    Past ({bookings.past.length})
-                  </button>
-                </div>
+            {/* Tabs */}
+            <div className="tabs tabs-boxed bg-base-200 mb-6">
+              <button
+                className={`tab ${activeTab === "pending" ? "tab-active" : ""}`}
+                onClick={() => setActiveTab("pending")}
+              >
+                Pending ({bookings.pending.length})
+              </button>
+              <button
+                className={`tab ${
+                  activeTab === "approved" ? "tab-active" : ""
+                }`}
+                onClick={() => setActiveTab("approved")}
+              >
+                Approved ({bookings.approved.length})
+              </button>
+              <button
+                className={`tab ${activeTab === "past" ? "tab-active" : ""}`}
+                onClick={() => setActiveTab("past")}
+              >
+                Past ({bookings.past.length})
+              </button>
+            </div>
 
-                {/* Bookings Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {activeTab === "pending" &&
-                    (bookings.pending.length === 0 ? (
-                      <div className="col-span-full text-center py-12">
-                        <Clock className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                        <p className="text-lg opacity-70">
-                          No pending bookings
-                        </p>
-                      </div>
-                    ) : (
-                      bookings.pending.map((booking) => (
-                        <BookingCard
-                          key={booking.booking_id}
-                          booking={booking}
-                          showActions={true}
-                        />
-                      ))
-                    ))}
+            {/* Bookings Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeTab === "pending" &&
+                (bookings.pending.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <Clock className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <p className="text-lg opacity-70">No pending bookings</p>
+                  </div>
+                ) : (
+                  bookings.pending.map((booking) => (
+                    <BookingCard
+                      key={booking.booking_id}
+                      booking={booking}
+                      showActions={true}
+                    />
+                  ))
+                ))}
 
-                  {activeTab === "approved" &&
-                    (bookings.approved.length === 0 ? (
-                      <div className="col-span-full text-center py-12">
-                        <CheckCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                        <p className="text-lg opacity-70">
-                          No approved bookings
-                        </p>
-                      </div>
-                    ) : (
-                      bookings.approved.map((booking) => (
-                        <BookingCard
-                          key={booking.booking_id}
-                          booking={booking}
-                          showActions={true}
-                        />
-                      ))
-                    ))}
+              {activeTab === "approved" &&
+                (bookings.approved.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <CheckCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <p className="text-lg opacity-70">No approved bookings</p>
+                  </div>
+                ) : (
+                  bookings.approved.map((booking) => (
+                    <BookingCard
+                      key={booking.booking_id}
+                      booking={booking}
+                      showActions={true}
+                    />
+                  ))
+                ))}
 
-                  {activeTab === "past" &&
-                    (bookings.past.length === 0 ? (
-                      <div className="col-span-full text-center py-12">
-                        <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                        <p className="text-lg opacity-70">No past bookings</p>
-                      </div>
-                    ) : (
-                      bookings.past.map((booking) => (
-                        <BookingCard
-                          key={booking.booking_id}
-                          booking={booking}
-                          showActions={false}
-                        />
-                      ))
-                    ))}
-                </div>
-              </>
-            )}
+              {activeTab === "past" &&
+                (bookings.past.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <p className="text-lg opacity-70">No past bookings</p>
+                  </div>
+                ) : (
+                  bookings.past.map((booking) => (
+                    <BookingCard
+                      key={booking.booking_id}
+                      booking={booking}
+                      showActions={false}
+                    />
+                  ))
+                ))}
+            </div>
           </div>
         </div>
       </div>
