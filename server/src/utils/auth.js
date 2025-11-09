@@ -3,8 +3,7 @@ import { dbConnection } from "../db/dbClient.js";
 import { openAPI } from "better-auth/plugins";
 import "dotenv/config";
 
-// Better auth config
-const auth = betterAuth({
+export const auth = betterAuth({
   database: dbConnection,
   plugins: [openAPI()],
   emailAndPassword: {
@@ -21,27 +20,14 @@ const auth = betterAuth({
     additionalFields: {
       accountType: {
         type: "string",
-        required: false,
-        input: false,
+        required: true,
       },
       onboardingCompleted: {
         type: "boolean",
         defaultValue: false,
-        required: false,
-      },
-    },
-    session: {
-      additionalFields: {
-        accountType: {
-          type: "string",
-          required: false,
-        },
-        onboardingCompleted: {
-          type: "boolean",
-          required: false,
-        },
       },
     },
   },
 });
+
 export default auth;
