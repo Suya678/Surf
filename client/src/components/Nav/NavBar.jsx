@@ -1,62 +1,69 @@
 import { authClient } from "../../lib/auth";
 import { Link } from "react-router";
 import LogoutButton from "../LogoutButton";
-import NavLinks from "./NavLinks";
+import { Menu, LogIn } from "lucide-react";
+
 const NavBar = () => {
   const { data: session } = authClient.useSession();
+
   return (
-    <div className="navbar bg-base-100 shadow-sm  max-h-18 ">
+    <div className="navbar bg-base-100 shadow-sm">
+      {/* Start: Logo + Mobile Menu */}
       <div className="navbar-start">
         <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
-              />
-            </svg>
-          </div>
+          <label tabIndex={0} className="btn btn-ghost btn-circle lg:hidden">
+            <Menu className="h-5 w-5" />
+          </label>
           <ul
-            tabIndex="-1"
-            className="menu menu-bg dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+            tabIndex={0}
+            className="menu menu-sm dropdown-content mt-3 z-50 p-2 shadow bg-base-200 rounded-box w-52"
           >
-            <NavLinks />
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/about">About</Link>
+            </li>
+            <li className="border-t mt-2 pt-2">
+              {session ? (
+                <LogoutButton />
+              ) : (
+                <Link to="/login">
+                  <LogIn className="h-4 w-4" /> Login
+                </Link>
+              )}
+            </li>
           </ul>
         </div>
-        <Link to="/" className="flex items-center ml-2">
-          <img
-            src="/HomeSurfLogo.png"
-            className="h-24 w-auto"
-            alt="HomeSurf Logo"
-          />
+        <Link to="/" className="flex items-center">
+          <img src="/HomeSurfLogo.png" className="h-16 w-auto" alt="HomeSurf" />
         </Link>
       </div>
-      <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1 text-lg">
-          <NavLinks />
+
+      {/* End: Desktop Links */}
+      <div className="navbar-end hidden lg:flex">
+        <ul className="menu menu-horizontal px-1">
+          <li>
+            <Link to="/">Home</Link>
+          </li>
+          <li>
+            <Link to="/about">About</Link>
+          </li>
         </ul>
-      </div>
-      <div className="navbar-end space-x-3">
-        <Link to="/home#about">
-          <button className="btn btn-sm">About</button>
-        </Link>
+        <div className="divider divider-horizontal"></div>
         {session ? (
           <LogoutButton />
         ) : (
-          <Link to="/Login">
-            <button className="btn btn-sm">Login</button>
+          <Link to="/login">
+            <button className="btn btn-sm btn-primary">
+              <LogIn className="h-4 w-4" />
+              Login
+            </button>
           </Link>
         )}
       </div>
     </div>
   );
 };
+
 export default NavBar;

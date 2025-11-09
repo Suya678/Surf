@@ -15,7 +15,6 @@ import {
 
 // Pages
 import HomePage from "./pages/HomePage";
-import AboutPage from "./pages/AboutPage";
 import LoginPage from "./pages/LoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import HostDashboardPage from "./pages/HostDashBoardPage";
@@ -100,7 +99,6 @@ function App() {
 
         {/* ===== PUBLIC ROUTES ===== */}
         <Route path="/home" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
 
         {/* ===== AUTH ROUTES ===== */}
         <Route

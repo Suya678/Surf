@@ -11,7 +11,7 @@ export default function HomePage() {
       {/* Navbar */}
       {!session ? (
         <NavBar />
-      ) : session.user.accountType === "Host" ? (
+      ) : session.user.accountType === "host" ? (
         <NavBarHost />
       ) : (
         <NavBarGuest />
@@ -35,9 +35,9 @@ export default function HomePage() {
             </h1>
 
             <p className="text-lg md:text-xl opacity-80 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              HomeSurf connects hosts with spare space to neighbors seeking safe, 
-              short-term shelter, prioritizing on safety, dignity,
-              and supportive community during life's transitions and emergencies.
+              HomeSurf connects hosts with spare space to neighbors seeking
+              safe, short-term shelter, prioritizing on safety, dignity, and
+              supportive community during life's transitions and emergencies.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <h3 className="card-title text-3xl md:text-4xl mb-6 font-black text-secondary">
-                  For Hosts
+                  Become a Guest
                 </h3>
                 <div className="space-y-6">
                   {[
@@ -190,25 +190,27 @@ export default function HomePage() {
               </h2>
               <div className="space-y-4 text-lg text-gray-900">
                 <p>
-                  HomeSurf was founded on a necessary realization that traditional 
-                  emergency housing and centralized safety nets are often too slow 
-                  and too rigid to handle sudden, immediate crises that displace people.
-                  We saw that critical short-term needs immediate shelter 
-                  after an incident were consistently not met, forcing vulnerable individuals 
-                  into uncertain situations simply because existing institutional 
-                  resources were unavailable or at capacity.
+                  HomeSurf was founded on a necessary realization that
+                  traditional emergency housing and centralized safety nets are
+                  often too slow and too rigid to handle sudden, immediate
+                  crises that displace people. We saw that critical short-term
+                  needs immediate shelter after an incident were consistently
+                  not met, forcing vulnerable individuals into uncertain
+                  situations simply because existing institutional resources
+                  were unavailable or at capacity.
                 </p>
                 <p>
-                  We built HomeSurf to mobilize the decentralized capacity of 
-                  the neighborhood. Our platform provides the framework to quickly 
-                  and securely connect neighbors offering a spare room with those 
-                  urgently seeking safe, temporary shelter. 
-                  We are focused on transforming community goodwill into reliable, 
-                  peer-to-peer assistance that offers immediate stability 
-                  and dignity when it matters most.
+                  We built HomeSurf to mobilize the decentralized capacity of
+                  the neighborhood. Our platform provides the framework to
+                  quickly and securely connect neighbors offering a spare room
+                  with those urgently seeking safe, temporary shelter. We are
+                  focused on transforming community goodwill into reliable,
+                  peer-to-peer assistance that offers immediate stability and
+                  dignity when it matters most.
                 </p>
                 <p className=" text-xl text-neutral">
-                  This is why we built HomeSurf because everyone deserves a safe place, and a community that cares.
+                  This is why we built HomeSurf because everyone deserves a safe
+                  place, and a community that cares.
                 </p>
               </div>
               <div className="card-actions justify-end mt-6"></div>
