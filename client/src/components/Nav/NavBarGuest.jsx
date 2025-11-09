@@ -1,9 +1,8 @@
 import { Link } from "react-router";
 import NavLinks from "./NavLinks";
 import LogoutButton from "../LogoutButton";
-import { Plus } from "lucide-react";
 
-const NavBarHost = () => {
+const NavBarGuest = () => {
   return (
     <div className="navbar bg-base-100 shadow-sm h-16 px-4">
       {/* Navbar Start */}
@@ -50,14 +49,11 @@ const NavBarHost = () => {
 
       {/* Navbar End */}
       <div className="navbar-end space-x-3">
-        <Link to="/addListing">
-          <button className="btn btn-sm btn-primary">
-            <Plus className="w-4 h-4" />
-            Add Listing
-          </button>
+        <Link to="/search">
+          <button className="btn btn-sm btn-primary">Search Listings</button>
         </Link>
 
-        <Link to="/hostDashboard">
+        <Link to="/guestDashboard">
           <button className="btn btn-sm">Dashboard</button>
         </Link>
 
@@ -71,4 +67,4 @@ const NavBarHost = () => {
   );
 };
 
-export default NavBarHost;
+export default NavBarGuest;

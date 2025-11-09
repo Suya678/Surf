@@ -2,3 +2,10 @@
 @plugin "daisyui" {
   themes: autumn;
 }
+.leaflet-popup-pane {
+  z-index: 700 !important;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}

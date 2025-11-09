@@ -7,11 +7,11 @@ const LogoutButton = () => {
   // Logs the current user out
   const handleLogout = async () => {
     await authClient.signOut();
-    navigate("/login");
+    navigate("/home"); // Changed to /home instead of /login
   };
 
   return (
-    <button onClick={handleLogout} className="btn btn-outline">
+    <button onClick={handleLogout} className="btn btn-sm">
       Logout
     </button>
   );

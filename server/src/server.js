@@ -244,7 +244,8 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
  * "guest_limit": 4,
  * "image" : "http..."
  * }
- */ app.post("/api/listing/create", isAuthenticated, async (req, res) => {
+ */
+app.post("/api/listing/create", isAuthenticated, async (req, res) => {
   const user_id = req.user.id;
   const {
     title,
@@ -255,6 +256,8 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
     postal_code,
     guest_limit,
     image: url,
+    available_from,
+    available_to,
   } = req.body;
 
   // --- Enhanced Validation ---
@@ -263,6 +266,24 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
       error:
         "title, address, city, province, postal_code, and image are required.",
     });
+  }
+
+  // Validate availability dates if provided
+  if (available_from && available_to) {
+    const fromDate = new Date(available_from);
+    const toDate = new Date(available_to);
+
+    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+      return res.status(400).json({
+        error: "Invalid date format. Please use YYYY-MM-DD.",
+      });
+    }
+
+    if (toDate <= fromDate) {
+      return res.status(400).json({
+        error: "End date must be after start date.",
+      });
+    }
   }
 
   // Validate postal code format (Canadian)
@@ -301,7 +322,6 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
       });
     }
 
-    // Optional: Log for debugging
     console.log(`Geocoded address: ${coordinates.formattedAddress}`);
   } catch (err) {
     console.error("Geocoding error:", err);
@@ -330,9 +350,11 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
         province,
         postal_code,
         guest_limit,
-        url
+        url,
+        available_from,
+        available_to
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *;
     `;
     const listingValues = [
@@ -343,9 +365,11 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
       address,
       city,
       province,
-      postal_code.toUpperCase().replace(/\s/g, ""), // Normalize postal code
+      postal_code.toUpperCase().replace(/\s/g, ""),
       guest_limit,
       url,
+      available_from || null,
+      available_to || null,
     ];
     const listingResult = await client.query(listingQuery, listingValues);
 
@@ -365,7 +389,7 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
 
     res.status(201).json({
       ...listingResult.rows[0],
-      verifiedAddress: coordinates.formattedAddress, // Show user what Google found
+      verifiedAddress: coordinates.formattedAddress,
     });
   } catch (err) {
     await client.query("ROLLBACK");
@@ -512,7 +536,7 @@ app.post("/api/booking/create", isAuthenticated, async (req, res) => {
  * [DELETE] /api/booking/:bookingId
  * Deletes a specific booking.
  *
- * This endpoint is protected. A user can only delete their *own* bookings.
+ * This endpoint is protected. A user can only delete their *own* booking.
  * The booking ID is passed as a URL parameter.
  *
  * Note: A listing *owner* would need a different endpoint/logic
@@ -589,82 +613,83 @@ app.get("/api/listings/my-listings", isAuthenticated, async (req, res) => {
 });
 
 /**
- * [GET] /api/bookings/pending
- * Fetches all 'Pending' bookings for the authenticated user.
+ * [GET] /api/booking/pending
+ * Fetches all 'Pending' booking for the authenticated user.
  */
-app.get("/api/bookings/pending", isAuthenticated, async (req, res) => {
+app.get("/api/booking/pending", isAuthenticated, async (req, res) => {
   const user_id = req.user.id;
+  console.log("here");
 
   try {
     const query = `
-      SELECT * FROM "bookings"
+      SELECT * FROM "booking"
       WHERE user_id = $1 AND status = 'Pending'
     `;
     const values = [user_id];
     const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error("Error fetching pending bookings:", err);
+    console.error("Error fetching pending booking:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 /**
- * [GET] /api/bookings/approved
- * Fetches all 'Approved' (upcoming) bookings for the authenticated user.
+ * [GET] /api/booking/approved
+ * Fetches all 'Approved' (upcoming) booking for the authenticated user.
  */
-app.get("/api/bookings/approved", isAuthenticated, async (req, res) => {
+app.get("/api/booking/approved", isAuthenticated, async (req, res) => {
   const user_id = req.user.id;
 
   try {
     const query = `
-      SELECT * FROM "bookings"
+      SELECT * FROM "booking"
       WHERE user_id = $1 AND status = 'Approved'
     `;
     const values = [user_id];
     const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error("Error fetching approved bookings:", err);
+    console.error("Error fetching approved booking:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 /**
- * [GET] /api/bookings/past
- * Fetches all 'Completed' or 'Rejected' bookings for the authenticated user.
+ * [GET] /api/booking/past
+ * Fetches all 'Completed' or 'Rejected' booking for the authenticated user.
  */
-app.get("/api/bookings/past", isAuthenticated, async (req, res) => {
+app.get("/api/booking/past", isAuthenticated, async (req, res) => {
   const user_id = req.user.id;
 
   try {
     const query = `
-      SELECT * FROM "bookings"
+      SELECT * FROM "booking"
       WHERE user_id = $1 AND (status = 'Completed' OR status = 'Rejected')
     `;
     const values = [user_id];
     const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error("Error fetching past bookings:", err);
+    console.error("Error fetching past booking:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 /**
- * [GET] /api/bookings/requests
+ * [GET] /api/booking/requests
  * Fetches all 'Pending' booking requests for listings owned by the
  * authenticated user (for hosts).
  */
-app.get("/api/bookings/requests", isAuthenticated, async (req, res) => {
+app.get("/api/booking/requests", isAuthenticated, async (req, res) => {
   const host_id = req.user.id; // This is the host's user ID
 
   try {
-    // This query joins bookings with listings to ensure the user
+    // This query joins booking with listings to ensure the user
     // only gets requests for listings they own.
     const query = `
       SELECT b.*
-      FROM "bookings" b
+      FROM "booking" b
       JOIN "listing" l ON b.listing_id = l.listing_id
       WHERE l.user_id = $1 AND b.status = 'Pending';
     `;
@@ -707,7 +732,7 @@ app.put("/api/booking/:bookingId", isAuthenticated, async (req, res) => {
     // the authenticated user (host_id) owns the listing
     // that the booking (bookingId) belongs to.
     const query = `
-      UPDATE "bookings" b
+      UPDATE "booking" b
       SET status = $1
       FROM "listing" l
       WHERE b.listing_id = l.listing_id
@@ -733,129 +758,98 @@ app.put("/api/booking/:bookingId", isAuthenticated, async (req, res) => {
   }
 });
 
-/**
- * [GET] /api/listings/search
- * Searches for listings based on location, availability, and guest count.
- *
- * Query Parameters:
- * - address (string, required): Street address
- * - city (string, required): City
- * - province (string, required): Province/State
- * - postal_code (string, required): Postal/Zip code
- * - range (number, optional): Search radius in km. Defaults to 25.
- * - guests (number, optional): Minimum guest capacity. Defaults to 1.
- * - checkin (string, optional): Check-in date (YYYY-MM-DD).
- * - checkout (string, optional): Check-out date (YYYY-MM-DD).
- *
- * (checkin and checkout must be provided together)
- */
 app.get("/api/listings/search", async (req, res) => {
-  const {
-    address,
-    city,
-    province,
-    postal_code,
-    checkin,
-    checkout,
-    guests,
-    range,
-  } = req.query;
+  const { city, province, checkin, checkout, guests } = req.query;
 
-  // --- 1. Validation ---
-  if (!address || !city || !province || !postal_code) {
+  if (!city) {
     return res.status(400).json({
-      error: "address, city, province, and postal_code are required.",
+      error: "City is required.",
     });
   }
 
-  // --- 2. Geocode the search address ---
-  let centerCoordinates;
   try {
-    centerCoordinates = await getCoordinates(
-      address,
-      city,
-      province,
-      postal_code
-    );
-    if (!centerCoordinates) {
-      return res
-        .status(400)
-        .json({ error: "Invalid address or address not found." });
-    }
-  } catch (err) {
-    console.error(err);
-    return res.status(503).json({ error: "Geocoding service unavailable." });
-  }
-
-  try {
-    const centerLat = centerCoordinates.latitude;
-    const centerLng = centerCoordinates.longitude;
-    const searchRadius = parseFloat(range || 25);
     const minGuests = parseInt(guests || 1);
 
-    // --- 3. Build the dynamic SQL query ---
-    let paramIndex = 1;
-    const values = [];
+    let query;
+    let values;
 
-    // Base query with Haversine formula (great-circle distance)
-    // to calculate distance in kilometers.
-    let baseQuery = `
-      SELECT
-        l.*,
-        c.latitude,
-        c.longitude,
-        ( 6371 * acos(
-            cos(radians($${paramIndex++})) * cos(radians(c.latitude))
-            * cos(radians(c.longitude) - radians($${paramIndex++}))
-            + sin(radians($${paramIndex++})) * sin(radians(c.latitude))
-        ) ) AS distance
-      FROM
-        "listing" l
-      JOIN
-        "coordinates" c ON l.listing_id = c.listing_id
-    `;
-    values.push(centerLat, centerLng, centerLat); // Lat/Lng are used multiple times
-
-    const whereClauses = [];
-
-    // --- Guest Filter ---
-    whereClauses.push(`l.guest_limit >= $${paramIndex++}`);
-    values.push(minGuests);
-
-    // --- Availability (Date) Filter ---
-    // Only add this filter if both checkin and checkout are provided
     if (checkin && checkout) {
-      // Find listings that do NOT have an 'Approved' or 'Pending' booking
-      // that overlaps with the requested date range.
-      // Overlap logic: (ExistingStart < NewEnd) AND (ExistingEnd > NewStart)
-      whereClauses.push(`
-        NOT EXISTS (
-          SELECT 1
-          FROM "bookings" b
-          WHERE b.listing_id = l.listing_id
-            AND (b.status = 'Pending' OR b.status = 'Approved')
-            AND (b.start_date < $${paramIndex++} AND b.end_date > $${paramIndex++})
-        )
-      `);
-      values.push(checkout, checkin); // Note: checkout is $${paramIndex}, checkin is $${paramIndex+1}
+      // With date filtering - check both booking conflicts AND listing availability
+      if (province) {
+        query = `
+          SELECT l.*, c.latitude, c.longitude
+          FROM "listing" l
+          JOIN "coordinates" c ON l.listing_id = c.listing_id
+          WHERE LOWER(l.city) = LOWER($1)
+            AND LOWER(l.province) = LOWER($2)
+            AND l.guest_limit >= $3
+            -- Check if listing availability window includes requested dates
+            AND (
+              l.available_from IS NULL 
+              OR (l.available_from <= $4 AND l.available_to >= $5)
+            )
+            -- Check for booking conflicts
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "booking" b
+              WHERE b.listing_id = l.listing_id
+                AND (b.status = 'Pending' OR b.status = 'Approved')
+                AND (b.start_date < $6 AND b.end_date > $4)
+            )
+          ORDER BY l.title ASC;
+        `;
+        values = [city, province, minGuests, checkin, checkout, checkout];
+      } else {
+        query = `
+          SELECT l.*, c.latitude, c.longitude
+          FROM "listing" l
+          JOIN "coordinates" c ON l.listing_id = c.listing_id
+          WHERE LOWER(l.city) = LOWER($1)
+            AND l.guest_limit >= $2
+            -- Check if listing availability window includes requested dates
+            AND (
+              l.available_from IS NULL 
+              OR (l.available_from <= $3 AND l.available_to >= $4)
+            )
+            -- Check for booking conflicts
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "booking" b
+              WHERE b.listing_id = l.listing_id
+                AND (b.status = 'Pending' OR b.status = 'Approved')
+                AND (b.start_date < $5 AND b.end_date > $3)
+            )
+          ORDER BY l.title ASC;
+        `;
+        values = [city, minGuests, checkin, checkout, checkout];
+      }
+    } else {
+      // Without date filtering - just show all listings
+      if (province) {
+        query = `
+          SELECT l.*, c.latitude, c.longitude
+          FROM "listing" l
+          JOIN "coordinates" c ON l.listing_id = c.listing_id
+          WHERE LOWER(l.city) = LOWER($1)
+            AND LOWER(l.province) = LOWER($2)
+            AND l.guest_limit >= $3
+          ORDER BY l.title ASC;
+        `;
+        values = [city, province, minGuests];
+      } else {
+        query = `
+          SELECT l.*, c.latitude, c.longitude
+          FROM "listing" l
+          JOIN "coordinates" c ON l.listing_id = c.listing_id
+          WHERE LOWER(l.city) = LOWER($1)
+            AND l.guest_limit >= $2
+          ORDER BY l.title ASC;
+        `;
+        values = [city, minGuests];
+      }
     }
 
-    // --- Combine WHERE clauses ---
-    if (whereClauses.length > 0) {
-      baseQuery += " WHERE " + whereClauses.join(" AND ");
-    }
-
-    // --- Add HAVING clause for distance (must be after WHERE) ---
-    baseQuery += ` HAVING distance <= $${paramIndex++}`;
-    values.push(searchRadius);
-
-    // --- Add ordering ---
-    baseQuery += " ORDER BY distance ASC;";
-
-    // --- 4. Execute the query ---
-    const result = await dbConnection.query(baseQuery, values);
-
-    // --- 5. Return results ---
+    const result = await dbConnection.query(query, values);
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error during search:", err);
@@ -892,6 +886,267 @@ app.get("/api/listings", isAuthenticated, async (req, res) => {
   } catch (err) {
     console.error("Error fetching user listings:", err);
     return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [PUT] /api/listing/:listingId
+ * Updates an existing listing.
+ *
+ * This endpoint is protected. A user can only update their own listings.
+ */
+app.put("/api/listing/:listingId", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  const { listingId } = req.params;
+  const {
+    title,
+    description,
+    address,
+    city,
+    province,
+    postal_code,
+    guest_limit,
+    image: url,
+  } = req.body;
+
+  // --- Validation ---
+  if (!title || !address || !city || !province || !postal_code || !url) {
+    return res.status(400).json({
+      error: "All fields are required.",
+    });
+  }
+
+  // Validate postal code format (Canadian)
+  const postalCodePattern = /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i;
+  if (!postalCodePattern.test(postal_code)) {
+    return res.status(400).json({
+      error: "Invalid Canadian postal code format (e.g., A1A 1A1)",
+    });
+  }
+
+  // Validate guest limit
+  if (isNaN(guest_limit) || guest_limit < 1) {
+    return res.status(400).json({
+      error: "Guest limit must be at least 1",
+    });
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+  } catch {
+    return res.status(400).json({
+      error: "Invalid image URL format",
+    });
+  }
+  console.log("here");
+  try {
+    await dbConnection.query("BEGIN");
+
+    // Verify ownership
+    const ownerCheck = await dbConnection.query(
+      "SELECT user_id FROM listing WHERE listing_id = $1",
+      [listingId]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      await dbConnection.query("ROLLBACK");
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    if (ownerCheck.rows[0].user_id !== user_id) {
+      await dbConnection.query("ROLLBACK");
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    // If address changed, re-geocode
+    let shouldUpdateCoordinates = false;
+    const oldListing = ownerCheck.rows[0];
+
+    const oldAddress = await dbConnection.query(
+      "SELECT address, city, province, postal_code FROM listing WHERE listing_id = $1",
+      [listingId]
+    );
+
+    const oldData = oldAddress.rows[0];
+    if (
+      oldData.address !== address ||
+      oldData.city !== city ||
+      oldData.province !== province ||
+      oldData.postal_code !== postal_code
+    ) {
+      shouldUpdateCoordinates = true;
+    }
+
+    let coordinates;
+    if (shouldUpdateCoordinates) {
+      coordinates = await getCoordinates(address, city, province, postal_code);
+      if (!coordinates) {
+        await dbConnection.query("ROLLBACK");
+        return res.status(400).json({
+          error: "Could not verify new address.",
+        });
+      }
+    }
+
+    // Update listing
+    const updateQuery = `
+      UPDATE listing 
+      SET title = $1, description = $2, address = $3, city = $4, 
+          province = $5, postal_code = $6, guest_limit = $7, url = $8
+      WHERE listing_id = $9 AND user_id = $10
+      RETURNING *
+    `;
+    const updateValues = [
+      title,
+      description,
+      address,
+      city,
+      province,
+      postal_code.toUpperCase().replace(/\s/g, ""),
+      guest_limit,
+      url,
+      listingId,
+      user_id,
+    ];
+
+    const result = await dbConnection.query(updateQuery, updateValues);
+
+    // Update coordinates if address changed
+    if (shouldUpdateCoordinates && coordinates) {
+      await dbConnection.query(
+        "UPDATE coordinates SET latitude = $1, longitude = $2 WHERE listing_id = $3",
+        [coordinates.latitude, coordinates.longitude, listingId]
+      );
+    }
+
+    await dbConnection.query("COMMIT");
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    await dbConnection.query("ROLLBACK");
+    console.error("Error updating listing:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/listing/:listingId/requests
+ * Gets all booking requests for a specific listing.
+ * Only the listing owner can access this.
+ */
+app.get(
+  "/api/listing/:listingId/requests",
+  isAuthenticated,
+  async (req, res) => {
+    const host_id = req.user.id;
+    const { listingId } = req.params;
+
+    try {
+      // Verify ownership and get requests
+      const query = `
+      SELECT b.*, u.name as guest_name, u.email as guest_email
+      FROM booking b
+      JOIN listing l ON b.listing_id = l.listing_id
+      JOIN "user" u ON b.user_id = u.id
+      WHERE l.listing_id = $1 AND l.user_id = $2
+      ORDER BY b.start_date ASC
+    `;
+      const values = [listingId, host_id];
+      const result = await dbConnection.query(query, values);
+
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error("Error fetching listing requests:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
+
+/**
+ * [GET] /api/booking/pending
+ * Fetches all 'Pending' booking for the authenticated user with listing details.
+ */
+app.get("/api/booking/pending", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const query = `
+      SELECT 
+        b.*,
+        l.title as listing_title,
+        l.city as listing_city,
+        l.province as listing_province,
+        l.url as listing_image
+      FROM "booking" b
+      JOIN "listing" l ON b.listing_id = l.listing_id
+      WHERE b.user_id = $1 AND b.status = 'Pending'
+      ORDER BY b.start_date ASC
+    `;
+    const values = [user_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching pending booking:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/booking/approved
+ * Fetches all 'Approved' (upcoming) booking for the authenticated user.
+ */
+app.get("/api/booking/approved", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const query = `
+      SELECT 
+        b.*,
+        l.title as listing_title,
+        l.city as listing_city,
+        l.province as listing_province,
+        l.url as listing_image
+      FROM "booking" b
+      JOIN "listing" l ON b.listing_id = l.listing_id
+      WHERE b.user_id = $1 AND b.status = 'Approved'
+      ORDER BY b.start_date ASC
+    `;
+    const values = [user_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching approved booking:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/booking/past
+ * Fetches all 'Completed' or 'Rejected' booking for the authenticated user.
+ */
+app.get("/api/booking/past", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const query = `
+      SELECT 
+        b.*,
+        l.title as listing_title,
+        l.city as listing_city,
+        l.province as listing_province,
+        l.url as listing_image
+      FROM "booking" b
+      JOIN "listing" l ON b.listing_id = l.listing_id
+      WHERE b.user_id = $1 AND (b.status = 'Completed' OR b.status = 'Rejected')
+      ORDER BY b.start_date DESC
+    `;
+    const values = [user_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching past booking:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 app.listen(process.env.PORT || 3000, () => {

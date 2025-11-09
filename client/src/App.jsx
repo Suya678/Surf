@@ -1,20 +1,31 @@
 import "./App.css";
 import { Route, Routes, Navigate } from "react-router";
-import HomePage from "./pages/HomePage";
-import { authClient } from "./lib/auth";
-import LoginPage from "./pages/LoginPage";
-import PageLoader from "./components/PageLoader";
-import AboutPage from "./pages/AboutPage";
-import OnboardingPage from "./pages/OnboardingPage";
-import { useEffect, useState } from "react";
-import DashBoardPage from "./pages/DashBoardPage";
-import HostDashBoardPage from "./pages/HostDashBoardPage";
 import { Toaster } from "react-hot-toast";
+import { authClient } from "./lib/auth";
+
+// Components
+import PageLoader from "./components/PageLoader";
+import {
+  RequireOnboarding,
+  RequireHost,
+  RequireGuest,
+  RedirectIfAuth,
+  RedirectIfOnboarded,
+} from "./components/RouteGuards";
+
+// Pages
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/AboutPage";
+import LoginPage from "./pages/LoginPage";
+import OnboardingPage from "./pages/OnboardingPage";
+import HostDashboardPage from "./pages/HostDashBoardPage";
+import GuestDashboardPage from "./pages/GuestDashBoardPage";
+import SearchPage from "./pages/SearchPage";
+import AddListingPage from "./pages/AddListingPage";
 
 function App() {
   const { data: session, isPending } = authClient.useSession();
 
-  // Show loader only while checking auth
   if (isPending) {
     return <PageLoader />;
   }
@@ -73,6 +84,7 @@ function App() {
       />
 
       <Routes>
+        {/* ===== ROOT ===== */}
         <Route
           path="/"
           element={
@@ -85,61 +97,84 @@ function App() {
             )
           }
         />
+
+        {/* ===== PUBLIC ROUTES ===== */}
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+
+        {/* ===== AUTH ROUTES ===== */}
         <Route
-          path="/hostDashboard"
+          path="/login"
           element={
-            !session ? (
-              <Navigate to="/home" replace />
-            ) : !session.user.onboardingCompleted ? (
-              <Navigate to="/onboarding" replace />
-            ) : session.user.accountType === "host" ? (
-              <HostDashBoardPage />
-            ) : (
-              <Navigate to="/dashboard" replace />
-            )
+            <RedirectIfAuth session={session}>
+              <LoginPage />
+            </RedirectIfAuth>
           }
         />
 
-        {/* Public home page - accessible to all */}
-        <Route path="/home" element={<HomePage />} />
-
-        {/* Public about page */}
-        <Route path="/about" element={<AboutPage />} />
-
-        {/* Onboarding - only for authenticated users who haven't onboarded */}
         <Route
           path="/onboarding"
           element={
-            !session ? (
-              <Navigate to="/home" replace />
-            ) : session.user.onboardingCompleted ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
+            <RedirectIfOnboarded session={session}>
               <OnboardingPage />
-            )
+            </RedirectIfOnboarded>
           }
         />
 
-        {/* Login - only for unauthenticated users */}
-        <Route
-          path="/login"
-          element={session ? <Navigate to="/" replace /> : <LoginPage />}
-        />
-
+        {/* ===== DASHBOARD ROUTER ===== */}
         <Route
           path="/dashboard"
           element={
-            !session ? (
-              <Navigate to="/home" replace />
-            ) : !session.user.onboardingCompleted ? (
-              <Navigate to="/onboarding" replace />
-            ) : session.user.accountType === "host" ? (
-              <HostDashBoardPage />
-            ) : (
-              <Navigate to="/dashboard" replace />
-            )
+            <RequireOnboarding session={session}>
+              {session?.user?.accountType === "host" ? (
+                <Navigate to="/hostDashboard" replace />
+              ) : (
+                <Navigate to="/guestDashboard" replace />
+              )}
+            </RequireOnboarding>
           }
         />
+
+        {/* ===== HOST ROUTES ===== */}
+        <Route
+          path="/hostDashboard"
+          element={
+            <RequireHost session={session}>
+              <HostDashboardPage />
+            </RequireHost>
+          }
+        />
+
+        <Route
+          path="/addListing"
+          element={
+            <RequireHost session={session}>
+              <AddListingPage />
+            </RequireHost>
+          }
+        />
+
+        {/* ===== GUEST ROUTES ===== */}
+        <Route
+          path="/guestDashboard"
+          element={
+            <RequireGuest session={session}>
+              <GuestDashboardPage />
+            </RequireGuest>
+          }
+        />
+
+        <Route
+          path="/search"
+          element={
+            <RequireGuest session={session}>
+              <SearchPage />
+            </RequireGuest>
+          }
+        />
+
+        {/* ===== FALLBACK ===== */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

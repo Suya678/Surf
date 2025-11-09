@@ -1,80 +1,70 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { X, Calendar } from "lucide-react";
+import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
+export default function EditListingModal({
+  isOpen,
+  onClose,
+  listing,
+  onListingUpdated,
+}) {
   const {
     register,
     handleSubmit,
-    reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: {
-      title: "",
-      description: "",
-      address: "",
-      city: "",
-      province: "",
-      postal_code: "",
-      guest_limit: 1,
-      image: "",
-      available_from: "",
-      available_to: "",
-    },
+    values: listing
+      ? {
+          title: listing.title,
+          description: listing.description || "",
+          address: listing.address,
+          city: listing.city,
+          province: listing.province,
+          postal_code: listing.postal_code,
+          guest_limit: listing.guest_limit,
+          image: listing.url,
+        }
+      : {},
   });
 
-  const availableFrom = watch("available_from");
-
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
-
   const onSubmit = async (data) => {
-    const loadingToast = toast.loading("Creating your listing...");
+    const loadingToast = toast.loading("Updating listing...");
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_BASE_URL}/api/listing/create`,
+        `${import.meta.env.VITE_SERVER_BASE_URL}/api/listing/${
+          listing.listing_id
+        }`,
         {
-          method: "POST",
+          method: "PUT",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         }
       );
+      console.log(data);
 
       const responseData = await response.json();
-
       if (!response.ok) {
-        throw new Error(responseData.error || "Failed to create listing");
+        throw new Error(responseData.error || "Failed to update listing");
       }
 
-      toast.success("Listing created successfully!", {
+      toast.success("Listing updated successfully!", {
         id: loadingToast,
-        duration: 4000,
       });
 
-      onListingAdded();
+      onListingUpdated();
       onClose();
-      reset();
     } catch (err) {
-      console.error("There was an error:", err);
-      toast.error(
-        err.message || "Failed to create listing. Please try again.",
-        {
-          id: loadingToast,
-          duration: 3000,
-        }
-      );
+      console.error("Error updating listing:", err);
+      toast.error(err.message || "Failed to update listing", {
+        id: loadingToast,
+      });
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen || !listing) return null;
 
   const InputField = ({ label, name, validation, type = "text", ...props }) => (
     <div>
@@ -124,14 +114,13 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <div className="bg-base-100 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-base-300">
           <div>
             <h2 className="text-2xl font-bold text-base-content">
-              Add a New Listing
+              Edit Listing
             </h2>
             <p className="text-sm opacity-70 mt-1">
-              Share your space with those who need it
+              Update your listing details
             </p>
           </div>
           <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
@@ -139,10 +128,8 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Title */}
             <div className="md:col-span-2">
               <InputField
                 label="Title"
@@ -157,7 +144,6 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
               />
             </div>
 
-            {/* Description */}
             <div className="md:col-span-2">
               <TextareaField
                 label="Description"
@@ -173,28 +159,24 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
               />
             </div>
 
-            {/* Address */}
             <InputField
               label="Address"
               name="address"
               validation={{ required: "Address is required" }}
             />
 
-            {/* City */}
             <InputField
               label="City"
               name="city"
               validation={{ required: "City is required" }}
             />
 
-            {/* Province */}
             <InputField
               label="Province"
               name="province"
               validation={{ required: "Province is required" }}
             />
 
-            {/* Postal Code */}
             <InputField
               label="Postal Code"
               name="postal_code"
@@ -207,7 +189,6 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
               }}
             />
 
-            {/* Guest Limit */}
             <InputField
               label="Guest Limit"
               name="guest_limit"
@@ -219,7 +200,6 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
               }}
             />
 
-            {/* Image URL */}
             <div className="md:col-span-2">
               <InputField
                 label="Image URL"
@@ -233,34 +213,8 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
                 }}
               />
             </div>
-
-            {/* Availability Dates */}
-            <div className="md:col-span-2">
-              <div className="divider">
-                <Calendar className="w-4 h-4 inline mr-2" />
-                Availability Window (Optional)
-              </div>
-              <p className="text-sm opacity-70 mb-4">
-                Specify when your listing is available for bookings
-              </p>
-            </div>
-
-            <InputField
-              label="Available From"
-              name="available_from"
-              type="date"
-              min={getTodayDate()}
-            />
-
-            <InputField
-              label="Available To"
-              name="available_to"
-              type="date"
-              min={availableFrom || getTodayDate()}
-            />
           </div>
 
-          {/* Footer Buttons */}
           <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-base-300">
             <button type="button" onClick={onClose} className="btn btn-ghost">
               Cancel
@@ -273,10 +227,10 @@ export default function AddListingModal({ isOpen, onClose, onListingAdded }) {
               {isSubmitting ? (
                 <>
                   <span className="loading loading-spinner loading-sm"></span>
-                  Submitting...
+                  Updating...
                 </>
               ) : (
-                "Add Listing"
+                "Update Listing"
               )}
             </button>
           </div>

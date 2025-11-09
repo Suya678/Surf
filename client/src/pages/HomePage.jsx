@@ -1,10 +1,15 @@
 import NavBar from "../components/Nav/NavBar";
 import { Link } from "react-router";
+import { authClient } from "../lib/auth";
+import NavBarHost from "../components/Nav/NavBarHost";
+import NavBarGuest from "../components/Nav/NavBarGuest";
 export default function HomePage() {
+  const { data: session } = authClient.useSession();
+
   return (
     <div className="min-h-screen" data-theme="autumn">
       {/* Navbar */}
-      <NavBar />
+      {!session ? <NavBar /> : <NavBarHost />}
       {/* Hero Section */}
       <section className="hero bg-base-200">
         <div className="hero-content max-w-7xl mx-auto py-8 lg:py-16 flex-col lg:flex-row-reverse gap-6 lg:gap-10">
