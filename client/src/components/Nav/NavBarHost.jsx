@@ -28,8 +28,8 @@ const NavBarHost = () => {
             </li>
           </ul>
         </div>
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/HomeSurfLogo.png" className="h-16 w-auto" alt="HomeSurf" />
+        <Link to="/">
+          <img src="/HomeSurfLogo.png" className="h-22 w-22" alt="HomeSurf" />
         </Link>
       </div>
 

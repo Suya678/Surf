@@ -23,16 +23,14 @@ const NavBarGuest = () => {
             <li>
               <Link to="/guestDashboard">Dashboard</Link>
             </li>
-            <li>
-              <Link to="/home">About</Link>
-            </li>
+
             <li className="border-t mt-2 pt-2">
               <LogoutButton />
             </li>
           </ul>
         </div>
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/HomeSurfLogo.png" className="h-16 w-auto" alt="HomeSurf" />
+        <Link to="/">
+          <img src="/HomeSurfLogo.png" className="h-22 w-22" alt="HomeSurf" />
         </Link>
       </div>
 
@@ -40,15 +38,12 @@ const NavBarGuest = () => {
       <div className="navbar-end hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
           <li>
-            <Link to="/search" className="btn btn-sm btn-accent">
+            <Link to="/search" className="btn btn-sm btn-primary">
               <Search className="h-4 w-4" /> Search
             </Link>
           </li>
           <li>
             <Link to="/guestDashboard">Dashboard</Link>
-          </li>
-          <li>
-            <Link to="/home">About</Link>
           </li>
         </ul>
         <div className="divider divider-horizontal"></div>

@@ -48,12 +48,6 @@ function LoginForm() {
               Join our community of compassionate hosts and guests building
               connections that matter.
             </p>
-            <div className="stats shadow bg-base-100/80 mt-6">
-              <div className="stat place-items-center py-4">
-                <div className="stat-value text-primary text-3xl">1,500+</div>
-                <div className="stat-desc">People Helped</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

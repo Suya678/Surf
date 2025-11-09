@@ -289,7 +289,7 @@ export default function SearchPage() {
                 /* Map View */
                 <div className="space-y-4">
                   <MapView listings={results} />
-                  <div className="alert alert-info">
+                  <div className="alert alert-info bg-primary/40">
                     <MapPin className="w-5 h-5" />
                     <span>Click on markers to see listing details</span>
                   </div>

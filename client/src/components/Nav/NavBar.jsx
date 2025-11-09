@@ -7,7 +7,7 @@ const NavBar = () => {
   const { data: session } = authClient.useSession();
 
   return (
-    <div className="navbar bg-base-100 shadow-sm">
+    <div className="navbar bg-base-100 shadow-sm p-x-2 p-y-1">
       {/* Start: Logo + Mobile Menu */}
       <div className="navbar-start">
         <div className="dropdown">
@@ -21,9 +21,7 @@ const NavBar = () => {
             <li>
               <Link to="/">Home</Link>
             </li>
-            <li>
-              <Link to="/about">About</Link>
-            </li>
+
             <li className="border-t mt-2 pt-2">
               {session ? (
                 <LogoutButton />
@@ -35,8 +33,8 @@ const NavBar = () => {
             </li>
           </ul>
         </div>
-        <Link to="/" className="flex items-center">
-          <img src="/HomeSurfLogo.png" className="h-16 w-auto" alt="HomeSurf" />
+        <Link to="/">
+          <img src="/HomeSurfLogo.png" className="h-22 w-22" alt="HomeSurf" />
         </Link>
       </div>
 
@@ -45,9 +43,6 @@ const NavBar = () => {
         <ul className="menu menu-horizontal px-1">
           <li>
             <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/about">About</Link>
           </li>
         </ul>
         <div className="divider divider-horizontal"></div>

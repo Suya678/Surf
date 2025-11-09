@@ -17,8 +17,8 @@ export default function HomePage() {
         <NavBarGuest />
       )}
       {/* Hero Section */}
-      <section className="hero min-h-screen bg-base-200">
-        <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex-col lg:flex-row-reverse gap-8 lg:gap-16">
+      <section className="hero bg-base-200">
+        <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-y-6 flex-col lg:flex-row-reverse gap-8 lg:gap-16">
           {/* Image */}
           <div className="w-full lg:w-1/2 flex justify-center items-center">
             <img
@@ -29,8 +29,8 @@ export default function HomePage() {
           </div>
 
           {/* Content */}
-          <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-primary">
+          <div className="w-full lg:w-1/2 space-y-3 text-center lg:text-left">
+            <h1 className="text-4xl md:text-5xl font-black leading-tight text-primary">
               Connecting those who can give shelter with those who need it most
             </h1>
 
@@ -65,7 +65,7 @@ export default function HomePage() {
             <div className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <h3 className="card-title text-3xl md:text-4xl mb-6 font-black text-primary">
-                  For Guests
+                  Become a Guest
                 </h3>
                 <div className="space-y-6">
                   {[
@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <h3 className="card-title text-3xl md:text-4xl mb-6 font-black text-secondary">
-                  Become a Guest
+                  Become a Host
                 </h3>
                 <div className="space-y-6">
                   {[
