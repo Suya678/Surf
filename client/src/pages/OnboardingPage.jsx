@@ -107,7 +107,7 @@ const OnboardingPage = () => {
             {/* GENDER */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-bold text-base">Gender</span>
+                <span className="label-text font-bold text-base">Gender *</span>
               </label>
               <select
                 {...register("gender", { required: "gender is required" })}
@@ -125,9 +125,8 @@ const OnboardingPage = () => {
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-bold text-base">
-                  Race / Ethnicity
+                  Race / Ethnicity *
                 </span>
-                <span className="label-text-alt">Optional</span>
               </label>
               <select
                 {...register("race", { required: "race is required" })}
@@ -151,7 +150,7 @@ const OnboardingPage = () => {
             <div className="form-control">
               <textarea
                 {...register("bio", { required: "Bio is required" })}
-                className="textarea textarea-bordered textarea-lg h-32 border-2 focus:border-primary"
+                className="textarea textarea-bordered textarea-lg h-32 border-2 focus:border-primary w-full"
                 placeholder="Tell us about yourself"
                 required
               />
@@ -160,7 +159,7 @@ const OnboardingPage = () => {
             {/* SUBMIT BUTTON */}
             <button
               type="submit"
-              className="btn btn-primary btn-lg w-full text-xl font-bold border-4 border-neutral shadow-lg hover:scale-105 transition-transform"
+              className="btn btn-primary btn-lg w-full text-xl font-bold border-4 border-neutral shadow-lg hover:scale-105 transition-transform "
             >
               Submit
             </button>

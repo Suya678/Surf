@@ -11,61 +11,57 @@ export default function HomePage() {
       {/* Navbar */}
       {!session ? <NavBar /> : <NavBarHost />}
       {/* Hero Section */}
-      <section className="hero bg-base-200">
-        <div className="hero-content max-w-7xl mx-auto py-8 lg:py-16 flex-col lg:flex-row-reverse gap-6 lg:gap-10">
+      <section className="hero min-h-screen bg-base-200">
+        <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex-col lg:flex-row-reverse gap-8 lg:gap-16">
           {/* Image */}
-          <div className="w-full lg:w-1/2">
+          <div className="w-full lg:w-1/2 flex justify-center items-center">
             <img
               src="/couch.png.avif"
               alt="Cozy couch representing shelter and comfort"
-              className="w-full rounded-lg shadow-xl"
+              className="w-full max-w-xl rounded-lg shadow-2xl object-cover"
             />
           </div>
 
           {/* Content */}
-          <div className="w-full lg:w-1/2 space-y-4 text-center lg:text-left">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight">
+          <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-primary">
               Connecting those who can give shelter with those who need it most
             </h1>
 
-            <p className="text-base md:text-lg opacity-80">
+            <p className="text-lg md:text-xl opacity-80 leading-relaxed max-w-2xl mx-auto lg:mx-0">
               HomeSurf connects neighbors who can host with people seeking
               short-term shelter—prioritizing safety, dignity, and community
               support during emergencies and transitions.
             </p>
 
-            <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-2">
-              <Link to="/login" className="btn btn-primary">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+              <Link to="/login" className="btn btn-primary btn-lg">
                 Join Now
               </Link>
-              <a href="#how-it-works" className="btn btn-ghost">
+              <a
+                href="#how-it-works"
+                className="btn btn-outline btn-secondary btn-lg"
+              >
                 How It Works
               </a>
-              <Link to="/onboarding" className="btn btn-outline">
-                Take Action
-              </Link>
             </div>
           </div>
         </div>
       </section>
-
       {/* How It Works Section */}
-      <div id="how-it-works" className="py-20 bg-base/ text-secondary-content">
-        <div className="container mx-auto px-4">
-          <h2
-            className="text-5xl md:text-7xl text-center mb-12 font-black"
-            style={{ fontFamily: "Impact, sans-serif" }}
-          >
+      <div id="how-it-works" className="py-20 bg-base-100">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl text-center mb-16 font-black text-primary">
             How It Works
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
             {/* For Guests */}
-            <div className="card text-secondary-content shadow-2xl border-4 border-neutral">
+            <div className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
-                <h3 className="card-title text-4xl mb-6 font-black">
-                  For Guest
+                <h3 className="card-title text-3xl md:text-4xl mb-6 font-black text-primary">
+                  For Guests
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {[
                     {
                       step: "1",
@@ -89,20 +85,20 @@ export default function HomePage() {
                     },
                   ].map((item) => (
                     <div key={item.step} className="flex items-start gap-4">
-                      <div className="badge badge-lg badge-accent font-bold text-lg w-10 h-10 flex items-center justify-center">
+                      <div className="badge badge-primary badge-lg font-bold text-lg w-10 h-10 flex items-center justify-center shrink-0">
                         {item.step}
                       </div>
                       <div>
-                        <h4 className="font-bold text-xl">{item.title}</h4>
-                        <p className="text-base">{item.desc}</p>
+                        <h4 className="font-bold text-xl mb-1">{item.title}</h4>
+                        <p className="text-base opacity-80">{item.desc}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="card-actions justify-end mt-6">
+                <div className="card-actions justify-end mt-8">
                   <Link
                     to="/login"
-                    className="btn btn-accent btn-block border-4 border-neutral shadow-lg hover:scale-105 transition-transform duration-200"
+                    className="btn btn-primary btn-block btn-lg hover:scale-105 transition-transform duration-200"
                   >
                     Get Started
                   </Link>
@@ -111,12 +107,12 @@ export default function HomePage() {
             </div>
 
             {/* For Hosts */}
-            <div className="card shadow-2xl border-4 border-neutral">
+            <div className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
-                <h3 className="card-title text-4xl mb-6 font-black">
+                <h3 className="card-title text-3xl md:text-4xl mb-6 font-black text-secondary">
                   For Hosts
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {[
                     {
                       step: "1",
@@ -140,20 +136,20 @@ export default function HomePage() {
                     },
                   ].map((item) => (
                     <div key={item.step} className="flex items-start gap-4">
-                      <div className="badge badge-lg badge-secondary font-bold text-lg w-10 h-10 flex items-center justify-center">
+                      <div className="badge badge-secondary badge-lg font-bold text-lg w-10 h-10 flex items-center justify-center shrink-0">
                         {item.step}
                       </div>
                       <div>
-                        <h4 className="font-bold text-xl">{item.title}</h4>
-                        <p className="text-base">{item.desc}</p>
+                        <h4 className="font-bold text-xl mb-1">{item.title}</h4>
+                        <p className="text-base opacity-80">{item.desc}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="card-actions justify-end mt-6">
+                <div className="card-actions justify-end mt-8">
                   <Link
                     to="/login"
-                    className="btn btn-secondary btn-block border-4 border-neutral shadow-lg hover:scale-105 transition-transform duration-200"
+                    className="btn btn-secondary btn-block btn-lg hover:scale-105 transition-transform duration-200"
                   >
                     Become a Host
                   </Link>
@@ -165,10 +161,10 @@ export default function HomePage() {
       </div>
 
       {/* Personal Story Section */}
-      <div id="story" className="py-20 bg-base-200">
+      <div id="about" className="py-20 bg-base-200">
         <div className="container mx-auto px-4">
           <div className="card lg:card-side bg-base-100 shadow-2xl border-4 border-neutral max-w-6xl mx-auto">
-            <figure className="lg:w-1/3 bg-gradient-to-br from-base-300 to-primary flex items-center justify-center p-12">
+            <figure className="lg:w-1/3 flex items-center justify-center p-12">
               <div className="relative aspect-square max-w-sm mx-auto">
                 <a href="https://storyset.com/business">
                   <img
@@ -211,8 +207,6 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-
-      <div className="w-3/4 mx-auto border-t border-neutral opacity-70 my-4"></div>
 
       <footer className="footer sm:footer-horizontal bg-base-100 text-gray-900 items-center p-2">
         <aside className="grid-flow-col items-center">

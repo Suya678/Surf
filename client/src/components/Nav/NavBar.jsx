@@ -45,7 +45,7 @@ const NavBar = () => {
         </ul>
       </div>
       <div className="navbar-end space-x-3">
-        <Link to="/about">
+        <Link to="/home#about">
           <button className="btn btn-sm">About</button>
         </Link>
         {session ? (
