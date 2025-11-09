@@ -21,10 +21,6 @@ export default async function getCoordinates(
       const addressComponents = result.address_components;
 
       // --- VALIDATION: Check location type ---
-      // ROOFTOP = exact address
-      // RANGE_INTERPOLATED = approximate street address
-      // GEOMETRIC_CENTER = geometric center (less accurate)
-      // APPROXIMATE = very vague (city level, etc.)
       const locationType = result.geometry.location_type;
 
       if (locationType === "APPROXIMATE") {
@@ -46,7 +42,6 @@ export default async function getCoordinates(
         c.types.includes("administrative_area_level_1")
       );
 
-      // Map full province names to abbreviations
       const provinceMap = {
         Alberta: "AB",
         "British Columbia": "BC",
@@ -112,7 +107,6 @@ export default async function getCoordinates(
         returnedCity &&
         returnedCity.long_name.toLowerCase() !== city.toLowerCase()
       ) {
-        // Allow some flexibility for city names (e.g., "Toronto" vs "North York")
         const similarCity =
           returnedCity.long_name.toLowerCase().includes(city.toLowerCase()) ||
           city.toLowerCase().includes(returnedCity.long_name.toLowerCase());
@@ -138,8 +132,8 @@ export default async function getCoordinates(
       return {
         latitude: location.lat,
         longitude: location.lng,
-        formattedAddress: result.formatted_address, // Return for verification
-        locationType: locationType, // Return for debugging
+        formattedAddress: result.formatted_address,
+        locationType: locationType,
       };
     } else {
       console.error("Geocoding failed:", data.status, data.error_message);
