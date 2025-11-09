@@ -3,33 +3,26 @@
 
 $schema: https://railway.app/railway.schema.json
 
-build:
-  # Use nixpacks, Railway's default buildpack, which auto-detects Node.js
-  builder: nixpacks
-  # Explicitly define the build command (runs after dependencies are installed)
-  # If you have a specific build step (e.g., 'npm run build'), add it here.
-  # For a simple Node.js app, 'npm install' is often handled automatically,
-  # but being explicit is fine.
-  buildCommand: npm install
-
-deploy:
-  # The command to start your application
-  # We use 'node server.js' since you are using ES modules
-  startCommand: node server.js
-  # Use the health check endpoint you defined in server.js
-  healthcheckPath: /
-  # Give the service up to 2 minutes to respond to the health check
-  healthcheckTimeout: 120
-  # Restart the app if it fails the health check
-  restartPolicyType: ON_FAILURE
-
 services:
-  # Define the PostgreSQL database service
+  # --- Your Node.js Web Application ---
+  - name: web
+    build:
+      # Use nixpacks, Railway's default buildpack, which auto-detects Node.js
+      builder: nixpacks
+      # Explicitly define the build command (runs after dependencies are installed)
+      buildCommand: npm install
+    deploy:
+      # The command to start your application
+      startCommand: node server.js
+      # Use the health check endpoint you defined in server.js
+      healthcheckPath: /
+      # Give the service up to 2 minutes to respond to the health check
+      healthcheckTimeout: 120
+      # Restart the app if it fails the health check
+      restartPolicyType: ON_FAILURE
+
+  # --- Your PostgreSQL Database ---
   - name: postgres
     image: postgres:15
-    # You can add a volume here to persist data across deploys,
-    # but Railway often handles this automatically.
-    # Example:
-    # volumes:
-    #   - mountPath: /var/lib/postgresql/data
-    #     name: postgresdata
+    # Railway will automatically link this service and provide the DB_URI
+    # to your 'web' service.
