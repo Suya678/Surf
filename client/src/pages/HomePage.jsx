@@ -35,9 +35,9 @@ export default function HomePage() {
             </h1>
 
             <p className="text-lg md:text-xl opacity-80 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              HomeSurf connects neighbors who can host with people seeking
-              short-term shelter—prioritizing safety, dignity, and community
-              support during emergencies and transitions.
+              HomeSurf connects hosts with spare space to neighbors seeking safe, 
+              short-term shelter, prioritizing on safety, dignity,
+              and supportive community during life's transitions and emergencies.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
