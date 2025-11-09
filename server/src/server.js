@@ -98,4 +98,10 @@ app.listen(process.env.PORT || 3000, () => {
       (process.env.BETTER_AUTH_URL ||
         `http://localhost:${process.env.PORT || 3000}`)
   );
+
+  console.log(
+    "Listening on: " +
+      (process.env.BETTER_AUTH_URL ||
+        `http://localhost:${process.env.PORT || 3000}`)
+  );
 });
