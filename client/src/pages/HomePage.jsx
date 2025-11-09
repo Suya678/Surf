@@ -202,8 +202,7 @@ export default function HomePage() {
                   others in need.
                 </p>
                 <p className=" text-xl text-neutral">
-                  This is why we built HomeSurf because everyone deserves a
-                  chance, a safe place, and a community that cares.
+                  This is why we built HomeSurf because everyone deserves a safe place, and a community that cares.
                 </p>
               </div>
               <div className="card-actions justify-end mt-6"></div>
