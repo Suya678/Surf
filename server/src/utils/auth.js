@@ -17,5 +17,17 @@ const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
   },
+  user: {
+    additionalFields: {
+      accountType: {
+        type: "string",
+        required: true,
+      },
+      onboardingCompleted: {
+        type: "boolean",
+        defaultValue: false,
+      },
+    },
+  },
 });
 export default auth;

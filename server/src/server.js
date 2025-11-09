@@ -16,7 +16,7 @@ app.use(
 );
 
 // Just checking the if db is connected, it will throw an error if not
-await dbConnection.query("SELECT 10");
+await dbConnection.query("CREATE SCHEMA public;");
 
 app.all("/api/auth/{*any}", toNodeHandler(auth));
 
