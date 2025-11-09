@@ -29,7 +29,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base md:text-lg opacity-80">
-              SurfHub connects neighbors who can host with people seeking
+              HomeSurf connects neighbors who can host with people seeking
               short-term shelter—prioritizing safety, dignity, and community
               support during emergencies and transitions.
             </p>
@@ -50,20 +50,20 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <div id="how-it-works" className="py-20 bg-primary text-primary-content">
+      <div id="how-it-works" className="py-20 bg-base/ text-secondary-content">
         <div className="container mx-auto px-4">
           <h2
             className="text-5xl md:text-7xl text-center mb-12 font-black"
             style={{ fontFamily: "Impact, sans-serif" }}
           >
-            HOW IT WORKS
+            How It Works
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {/* For Guests */}
-            <div className="card bg-secondary text-secondary-content shadow-2xl border-4 border-neutral">
+            <div className="card text-secondary-content shadow-2xl border-4 border-neutral">
               <div className="card-body">
                 <h3 className="card-title text-4xl mb-6 font-black">
-                  🏄 FOR GUESTS
+                  For Guest
                 </h3>
                 <div className="space-y-4">
                   {[
@@ -100,18 +100,21 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="card-actions justify-end mt-6">
-                  <button className="btn btn-accent btn-block border-4 border-neutral shadow-lg">
+                  <Link
+                    to="/login"
+                    className="btn btn-accent btn-block border-4 border-neutral shadow-lg hover:scale-105 transition-transform duration-200"
+                  >
                     Get Started
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
 
             {/* For Hosts */}
-            <div className="card bg-accent text-accent-content shadow-2xl border-4 border-neutral">
+            <div className="card shadow-2xl border-4 border-neutral">
               <div className="card-body">
                 <h3 className="card-title text-4xl mb-6 font-black">
-                  🏠 FOR HOSTS
+                  For Hosts
                 </h3>
                 <div className="space-y-4">
                   {[
@@ -148,9 +151,12 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="card-actions justify-end mt-6">
-                  <button className="btn btn-secondary btn-block border-4 border-neutral shadow-lg">
+                  <Link
+                    to="/login"
+                    className="btn btn-secondary btn-block border-4 border-neutral shadow-lg hover:scale-105 transition-transform duration-200"
+                  >
                     Become a Host
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -162,17 +168,25 @@ export default function HomePage() {
       <div id="story" className="py-20 bg-base-200">
         <div className="container mx-auto px-4">
           <div className="card lg:card-side bg-base-100 shadow-2xl border-4 border-neutral max-w-6xl mx-auto">
-            <figure className="lg:w-1/3 bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-12">
-              <div className="text-9xl">📖</div>
+            <figure className="lg:w-1/3 bg-gradient-to-br from-base-300 to-primary flex items-center justify-center p-12">
+              <div className="relative aspect-square max-w-sm mx-auto">
+                <a href="https://storyset.com/business">
+                  <img
+                    src="/Team spirit-bro.svg"
+                    alt="Team Spirit illustration"
+                    className="w-full h-full"
+                  />
+                </a>
+              </div>
             </figure>
             <div className="card-body lg:w-2/3">
               <h2
-                className="card-title text-4xl font-black text-primary mb-4"
+                className="card-title text-4xl font-black mb-4"
                 style={{ fontFamily: "Impact, sans-serif" }}
               >
-                WHY WE STARTED
+                Why We Started
               </h2>
-              <div className="space-y-4 text-lg">
+              <div className="space-y-4 text-lg text-gray-900">
                 <p>
                   "Three years ago, my best friend lost everything when his
                   house burned down. He had nowhere to go, no family nearby, and
@@ -182,67 +196,34 @@ export default function HomePage() {
                 <p>
                   That act of kindness changed his life. It gave him the
                   stability he needed to rebuild. Today, he has his own place
-                  and volunteers as a host on SurfHub, paying it forward to
+                  and volunteers as a host on HomeSurf, paying it forward to
                   others in need.
                 </p>
-                <p className="font-bold text-xl text-primary">
-                  This is why we built SurfHub - because everyone deserves a
+                <p className=" text-xl text-neutral">
+                  This is why we built HomeSurf because everyone deserves a
                   chance, a safe place, and a community that cares.
                 </p>
               </div>
-              <div className="card-actions justify-end mt-6">
-                <button className="btn btn-primary btn-lg border-4 border-neutral shadow-lg">
-                  Join Our Community
-                </button>
-              </div>
+              <div className="card-actions justify-end mt-6"></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* CTA Footer */}
-      <div className="bg-neutral text-neutral-content py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2
-            className="text-4xl md:text-6xl mb-6 font-black"
-            style={{ fontFamily: "Impact, sans-serif" }}
-          >
-            READY TO MAKE A DIFFERENCE?
-          </h2>
-          <p className="text-2xl mb-8 font-semibold">
-            Join thousands who are already part of our community
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="btn btn-secondary btn-lg text-xl border-4 border-base-100 shadow-lg">
-              I Need Help
-            </button>
-            <button className="btn btn-accent btn-lg text-xl border-4 border-base-100 shadow-lg">
-              I Want to Help
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Footer */}
-      <footer className="footer footer-center p-10 bg-base-200 text-base-content border-t-4 border-neutral">
-        <div>
-          <div className="text-6xl mb-4">🏄</div>
-          <p className="font-bold text-2xl">SurfHub</p>
-          <p className="text-lg font-semibold">
-            Connecting hearts, one wave at a time
-          </p>
-          <p className="font-semibold">
-            Copyright © 2024 - All rights reserved
-          </p>
-        </div>
-        <div>
-          <div className="grid grid-flow-col gap-4 text-lg font-semibold">
-            <a className="link link-hover">Contact</a>
-            <a className="link link-hover">Privacy</a>
-            <a className="link link-hover">Terms</a>
-            <a className="link link-hover">Safety</a>
-          </div>
-        </div>
+
+      <div className="w-3/4 mx-auto border-t border-neutral opacity-70 my-4"></div>
+
+      <footer className="footer sm:footer-horizontal bg-base-100 text-gray-900 items-center p-2">
+        <aside className="grid-flow-col items-center">
+          <img
+            src="/HomeSurfLogo.png"
+            className="h-24 w-auto"
+            alt="HomeSurf Logo"
+          />
+          <p>Copyright © {new Date().getFullYear()} - All right reserved</p>
+        </aside>
+        <nav className="grid-flow-col gap-4 md:place-self-center md:justify-self-end"></nav>
       </footer>
     </div>
   );
