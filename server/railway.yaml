@@ -11,8 +11,16 @@ services:
       builder: nixpacks
       # Explicitly define the build command (runs after dependencies are installed)
       buildCommand: npm install
+      # --- Add Nixpacks config to be explicit ---
+      # This tells the builder (Nixpacks) what start command to use
+      # This is an extra layer of configuration to ensure the correct
+      # start command is baked into the build image.
+      nixpacksConfig:
+        start:
+          cmd: node server.js
     deploy:
-      # The command to start your application
+      # The command to run to start your application
+      # This *should* override any other detected start command.
       startCommand: node server.js
       # Use the health check endpoint you defined in server.js
       healthcheckPath: /
