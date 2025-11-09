@@ -190,16 +190,22 @@ export default function HomePage() {
               </h2>
               <div className="space-y-4 text-lg text-gray-900">
                 <p>
-                  "Three years ago, my best friend lost everything when his
-                  house burned down. He had nowhere to go, no family nearby, and
-                  the shelters were full. For two weeks, he slept in his car
-                  until a stranger offered him their spare room.
+                  HomeSurf was founded on a necessary realization that traditional 
+                  emergency housing and centralized safety nets are often too slow 
+                  and too rigid to handle sudden, immediate crises that displace people.
+                  We saw that critical short-term needs like immediate shelter 
+                  after an incident were consistently not met, forcing vulnerable individuals 
+                  into uncertain situations simply because existing institutional 
+                  resources were unavailable or at capacity.
                 </p>
                 <p>
-                  That act of kindness changed his life. It gave him the
-                  stability he needed to rebuild. Today, he has his own place
-                  and volunteers as a host on HomeSurf, paying it forward to
-                  others in need.
+                  We built HomeSurf to mobilize the decentralized capacity of 
+                  the neighborhood. Our platform provides the framework to quickly 
+                  and securely connect neighbors offering a spare room with those 
+                  urgently seeking safe, temporary shelter. 
+                  We are focused on transforming community goodwill into reliable, 
+                  peer-to-peer assistance that offers immediate stability 
+                  and dignity when it matters most.
                 </p>
                 <p className=" text-xl text-neutral">
                   This is why we built HomeSurf because everyone deserves a safe place, and a community that cares.
