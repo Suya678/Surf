@@ -1,21 +1,27 @@
 import { handleLogin } from "../lib/auth";
+
 function LoginForm() {
   return (
-    <div className="flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-secondary/10 rounded-xl shadow-lg overflow-hidden">
-      {/* Sign up/ Sign in form*/}
-      <div className="w-full lg:w-1/2 p-4 sm:p-8 flex flex-col gap-9">
-        <div className="font-bold mb-4 flex items-center justify-start gap-2 flex-col text-base-content tracking-wider ">
-          <h1 className="text-3xl ">Welcome Back</h1>
-          <p className=" text-lg">Sign in with your preferred account</p>
+    <div className="flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100 rounded-xl shadow-2xl overflow-hidden">
+      {/* Sign in form */}
+      <div className="w-full lg:w-1/2 p-6 sm:p-10 flex flex-col gap-8 bg-base-200 items-center justify-center">
+        <div className="text-center ">
+          <h1 className="text-4xl font-black text-primary mb-3">
+            Welcome Back
+          </h1>
+          <p className="text-lg opacity-80">
+            Continue your journey toward safety and stability
+          </p>
         </div>
+
         <div className="space-y-4">
           <button
-            className="btn btn-outline btn-lg w-full gap-3 hover:bg-primary/30 "
+            className="btn btn-primary btn-lg w-full gap-3 hover:scale-105 transition-transform"
             onClick={() => handleLogin("google")}
           >
             <img
               src="/google-svgrepo-com.svg"
-              className="w-8 h-8 "
+              className="w-6 h-6"
               alt="google logo"
             />
             Continue with Google
@@ -24,25 +30,30 @@ function LoginForm() {
       </div>
 
       {/* Illustration */}
-      <div className="hidden lg:flex w-full lg:w-1/2 bg-primary/10 items-center justify-center">
-        <div className="max-w-md p-8">
+      <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-primary/20 to-secondary/20 items-center justify-center p-8">
+        <div className="max-w-md">
           <div className="relative aspect-square max-w-sm mx-auto">
-            <a href="https://storyset.com/business">
-              <img
-                src="/house_pic.svg"
-                alt="House illustration"
-                className="w-full h-full"
-              />
-            </a>
+            <img
+              src="/house_pic.svg"
+              alt="House illustration"
+              className="w-full h-full drop-shadow-xl"
+            />
           </div>
 
-          <div className="text-center space-y-3 mt-6">
-            <h2 className="text-xl font-semibold">
-              Join Millions of Happy Customers
+          <div className="text-center space-y-4 mt-8">
+            <h2 className="text-2xl font-bold text-primary">
+              Find Your Safe Haven
             </h2>
-            <p className="opacity-70">
-              Sign in to add to your cart and get exclusive deals
+            <p className="text-lg opacity-80 leading-relaxed">
+              Join our community of compassionate hosts and guests building
+              connections that matter.
             </p>
+            <div className="stats shadow bg-base-100/80 mt-6">
+              <div className="stat place-items-center py-4">
+                <div className="stat-value text-primary text-3xl">1,500+</div>
+                <div className="stat-desc">People Helped</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
