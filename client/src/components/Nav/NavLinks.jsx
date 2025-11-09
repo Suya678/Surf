@@ -2,7 +2,8 @@ import { Link } from "react-router";
 /**
  * Used for navigation
  */
-const links = [{ label: "Home", path: "/" }];
+const links = [];
+// const links = [{ label: "Home", path: "/" }];
 
 const NavLinks = () => {
   return (

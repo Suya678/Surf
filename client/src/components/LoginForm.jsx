@@ -29,8 +29,8 @@ function LoginForm() {
           <div className="relative aspect-square max-w-sm mx-auto">
             <a href="https://storyset.com/business">
               <img
-                src="/fashion_shop.svg"
-                alt="Fashion shop illustration"
+                src="/house_pic.svg"
+                alt="House illustration"
                 className="w-full h-full"
               />
             </a>
