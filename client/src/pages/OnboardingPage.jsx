@@ -1,26 +1,29 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { authClient } from "../lib/authClient"; // if you're using Better Auth
 
 const OnboardingPage = () => {
-  const [role, setRole] = useState("guest");
-  const [formData, setFormData] = useState({
-    fullName: "",
-    age: "",
-    gender: "",
-    race: "",
-    bio: "",
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      accountType: "guest",
+      age: "",
+      gender: "",
+      race: "",
+      bio: "",
+    },
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", { ...formData, role });
-    // Handle form submission
-  };
+  const accountType = watch("accountType");
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const onSubmit = async (data) => {
+    console.log("Submitting:", data);
+
+    try {
+    } catch (err) {}
   };
 
   return (
@@ -30,14 +33,12 @@ const OnboardingPage = () => {
     >
       <div className="card bg-base-100 w-full max-w-3xl shadow-2xl border-4 border-neutral">
         <div className="card-body p-8 sm:p-12">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight">
-              Complete your Profile
-            </h1>
-          </div>
+          <h1 className="text-4xl font-black text-center mb-8">
+            Complete your Profile
+          </h1>
 
-          <div className="space-y-6 ">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* ACCOUNT TYPE */}
             <div className="form-control space-x-2">
               <label className="label">
                 <span className="label-text font-bold text-base">
@@ -47,16 +48,20 @@ const OnboardingPage = () => {
               <div className="join">
                 <input
                   type="radio"
-                  name="accountType"
                   value="host"
-                  className="join-item btn"
+                  {...register("accountType")}
+                  className={`join-item btn ${
+                    accountType === "host" ? "btn-primary" : ""
+                  }`}
                   aria-label="Host"
                 />
                 <input
                   type="radio"
-                  name="accountType"
                   value="guest"
-                  className="join-item btn"
+                  {...register("accountType")}
+                  className={`join-item btn ${
+                    accountType === "guest" ? "btn-primary" : ""
+                  }`}
                   aria-label="Guest"
                 />
               </div>
@@ -64,41 +69,38 @@ const OnboardingPage = () => {
 
             <div className="divider"></div>
 
-            {/* AGE & GENDER */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-bold text-base">Age *</span>
-                </label>
-                <input
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  className="input input-bordered input-lg w-full border-2 focus:border-primary"
-                  placeholder="18+"
-                  min="18"
-                  required
-                />
-              </div>
+            {/* AGE */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-bold text-base">Age *</span>
+              </label>
+              <input
+                type="number"
+                min="18"
+                className="input input-bordered input-lg w-full border-2 focus:border-primary"
+                placeholder="18+"
+                {...register("age", { required: "Age is required", min: 18 })}
+              />
+              {errors.age && (
+                <p className="text-error text-sm mt-1">{errors.age.message}</p>
+              )}
+            </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-bold text-base">Gender</span>
-                </label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  className="select select-bordered select-lg w-full border-2 focus:border-primary"
-                >
-                  <option value="">Select gender</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Non-binary</option>
-                  <option>Prefer not to say</option>
-                </select>
-              </div>
+            {/* GENDER */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-bold text-base">Gender</span>
+              </label>
+              <select
+                {...register("gender")}
+                className="select select-bordered select-lg w-full border-2 focus:border-primary"
+              >
+                <option value="">Select gender</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Non-binary</option>
+                <option>Prefer not to say</option>
+              </select>
             </div>
 
             {/* RACE */}
@@ -110,9 +112,7 @@ const OnboardingPage = () => {
                 <span className="label-text-alt">Optional</span>
               </label>
               <select
-                name="race"
-                value={formData.race}
-                onChange={handleChange}
+                {...register("race")}
                 className="select select-bordered select-lg w-full border-2 focus:border-primary"
               >
                 <option value="">Select race/ethnicity</option>
@@ -132,9 +132,7 @@ const OnboardingPage = () => {
             {/* BIO */}
             <div className="form-control">
               <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
+                {...register("bio")}
                 className="textarea textarea-bordered textarea-lg h-32 border-2 focus:border-primary"
                 placeholder="Tell us about yourself"
               />
@@ -142,12 +140,12 @@ const OnboardingPage = () => {
 
             {/* SUBMIT BUTTON */}
             <button
+              type="submit"
               className="btn btn-primary btn-lg w-full text-xl font-bold border-4 border-neutral shadow-lg hover:scale-105 transition-transform"
-              type="button"
             >
               Submit
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
