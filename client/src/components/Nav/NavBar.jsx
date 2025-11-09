@@ -2,11 +2,10 @@ import { authClient } from "../../lib/auth";
 import { Link } from "react-router";
 import LogoutButton from "../LogoutButton";
 import NavLinks from "./NavLinks";
-
 const NavBar = () => {
   const { data: session } = authClient.useSession();
   return (
-    <div className="navbar bg-base-100 shadow-sm">
+    <div className="navbar bg-base-100 shadow-sm  max-h-18 ">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -17,13 +16,12 @@ const NavBar = () => {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              {" "}
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
                 d="M4 6h16M4 12h8m-8 6h16"
-              />{" "}
+              />
             </svg>
           </div>
           <ul
@@ -33,7 +31,13 @@ const NavBar = () => {
             <NavLinks />
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl font-bold font-sans">Surf</a>
+        <Link to="/" className="flex items-center ml-2">
+          <img
+            src="/HomeSurfLogo.png"
+            className="h-24 w-auto"
+            alt="HomeSurf Logo"
+          />
+        </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 text-lg">
@@ -55,5 +59,4 @@ const NavBar = () => {
     </div>
   );
 };
-
 export default NavBar;
