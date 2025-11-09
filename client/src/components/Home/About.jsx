@@ -25,11 +25,11 @@ export default function About() {
               <p>
                 That act of kindness changed his life. It gave him the stability
                 he needed to rebuild. Today, he has his own place and volunteers
-                as a host on SurfHub, paying it forward to others in need.
+                as a host on HomeSurf, paying it forward to others in need.
               </p>
               <p className="font-bold text-xl text-primary">
-                This is why we built SurfHub - because everyone deserves a
-                chance, a safe place, and a community that cares.
+                This is why we built HomeSurf because everyone deserves a
+                a safe place, and a community that cares.
               </p>
             </div>
             <div className="card-actions justify-end mt-6">
