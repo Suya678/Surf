@@ -193,7 +193,7 @@ export default function HomePage() {
                   HomeSurf was founded on a necessary realization that traditional 
                   emergency housing and centralized safety nets are often too slow 
                   and too rigid to handle sudden, immediate crises that displace people.
-                  We saw that critical short-term needs like immediate shelter 
+                  We saw that critical short-term needs immediate shelter 
                   after an incident were consistently not met, forcing vulnerable individuals 
                   into uncertain situations simply because existing institutional 
                   resources were unavailable or at capacity.
