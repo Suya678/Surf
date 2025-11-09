@@ -6,7 +6,7 @@ import { dbConnection } from "./db/dbClient.js";
 import { toNodeHandler } from "better-auth/node";
 import crypto from "crypto"; // Import crypto for generating UUIDs
 import isAuthenticated from "./middleware/isAuthenticated.js"; // Import the auth middleware
-
+import getCoordinates from "./utils/getCordinates.js";
 const app = express();
 const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 
@@ -229,26 +229,23 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
 
 /**
  * [POST] /api/listing/create
- * Creates a new listing for a user.
+ * Creates a new listing and its coordinates.
+ *
+ * This endpoint is protected.
  *
  * Request Body:
  * {
- * "user_id": "user_id_from_auth",
- * "title": "Beautiful Downtown Apartment",
- * "description": "A lovely place to stay, with all amenities.",
+ * "title": "My Listing",
+ * "description": "A great place.",
  * "address": "123 Main St",
- * "city": "Metropolis",
- * "province": "NY",
- * "postal_code": "10001",
- * "guest_limit": 2
+ * "city": "Anytown",
+ * "province": "CA",
+ * "postal_code": "12345",
+ * "guest_limit": 4,
+ * "image" : "http..."
  * }
- *
- * SECURITY NOTE: This endpoint is currently UNPROTECTED.
- * You should protect this route using authentication middleware.
- * If you use `auth.protect()`, you could get the user ID from
- * `req.user.id` instead of trusting the "user_id" in the body.
- */
-app.post("/api/listing/create", isAuthenticated, async (req, res) => {
+ */ app.post("/api/listing/create", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
   const {
     title,
     description,
@@ -257,24 +254,72 @@ app.post("/api/listing/create", isAuthenticated, async (req, res) => {
     province,
     postal_code,
     guest_limit,
+    image: url,
   } = req.body;
-  const user_id = req.user.id; // Get the user ID from the authenticated session
 
-  // --- Input Validation ---
-  // We no longer need to check for user_id, as the middleware guarantees it
-  if (!title) {
-    return res.status(400).json({ error: "Title is required." });
+  // --- Enhanced Validation ---
+  if (!title || !address || !city || !province || !postal_code || !url) {
+    return res.status(400).json({
+      error:
+        "title, address, city, province, postal_code, and image are required.",
+    });
   }
-  if (guest_limit && typeof guest_limit !== "number") {
-    return res.status(400).json({ error: "Guest limit must be a number." });
-  }
-  // --- End Validation ---
 
+  // Validate postal code format (Canadian)
+  const postalCodePattern = /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i;
+  if (!postalCodePattern.test(postal_code)) {
+    return res.status(400).json({
+      error: "Invalid Canadian postal code format (e.g., A1A 1A1)",
+    });
+  }
+
+  // Validate guest limit
+  if (isNaN(guest_limit) || guest_limit < 1) {
+    return res.status(400).json({
+      error: "Guest limit must be at least 1",
+    });
+  }
+
+  // Validate URL format
   try {
-    // Generate a new unique listing_id
+    new URL(url);
+  } catch {
+    return res.status(400).json({
+      error: "Invalid image URL format",
+    });
+  }
+
+  // --- Geocoding with better error handling ---
+  let coordinates;
+  try {
+    coordinates = await getCoordinates(address, city, province, postal_code);
+
+    if (!coordinates) {
+      return res.status(400).json({
+        error:
+          "Could not verify address. Please ensure the street address, city, province, and postal code are correct and match a real location in Canada.",
+      });
+    }
+
+    // Optional: Log for debugging
+    console.log(`Geocoded address: ${coordinates.formattedAddress}`);
+  } catch (err) {
+    console.error("Geocoding error:", err);
+    return res.status(503).json({
+      error:
+        "Address verification service temporarily unavailable. Please try again later.",
+    });
+  }
+
+  // --- Database Transaction ---
+  const client = await dbConnection.connect();
+  try {
     const listing_id = crypto.randomUUID();
 
-    const query = `
+    await client.query("BEGIN");
+
+    // 1. Insert into listing table
+    const listingQuery = `
       INSERT INTO "listing" (
         listing_id,
         user_id,
@@ -284,40 +329,58 @@ app.post("/api/listing/create", isAuthenticated, async (req, res) => {
         city,
         province,
         postal_code,
-        guest_limit
+        guest_limit,
+        url
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *;
     `;
-
-    const values = [
+    const listingValues = [
       listing_id,
       user_id,
       title,
-      description || null,
-      address || null,
-      city || null,
-      province || null,
-      postal_code || null,
-      guest_limit || null,
+      description,
+      address,
+      city,
+      province,
+      postal_code.toUpperCase().replace(/\s/g, ""), // Normalize postal code
+      guest_limit,
+      url,
     ];
+    const listingResult = await client.query(listingQuery, listingValues);
 
-    const result = await dbConnection.query(query, values);
+    // 2. Insert into coordinates table
+    const coordinatesQuery = `
+      INSERT INTO "coordinates" (listing_id, latitude, longitude)
+      VALUES ($1, $2, $3);
+    `;
+    const coordinateValues = [
+      listing_id,
+      coordinates.latitude,
+      coordinates.longitude,
+    ];
+    await client.query(coordinatesQuery, coordinateValues);
 
-    // Send back the newly created listing data
-    res.status(201).json(result.rows[0]); // 201 Created
+    await client.query("COMMIT");
+
+    res.status(201).json({
+      ...listingResult.rows[0],
+      verifiedAddress: coordinates.formattedAddress, // Show user what Google found
+    });
   } catch (err) {
-    console.error("Error creating listing:", err);
-    // Check for foreign key violation (user ID doesn't exist in 'user' table)
+    await client.query("ROLLBACK");
+    console.error("Error creating listing (transaction rolled back):", err);
+
     if (err.code === "23503") {
       return res.status(404).json({
         error: "User not found. Cannot create listing for non-existent user.",
       });
     }
     res.status(500).json({ error: "Internal server error" });
+  } finally {
+    client.release();
   }
 });
-
 /**
  * [DELETE] /api/listing/:listingId
  * Deletes a specific listing.
@@ -368,6 +431,469 @@ app.delete("/api/listing/:listingId", isAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * [POST] /api/booking/create
+ * Creates a new booking for a listing.
+ *
+ * This endpoint is protected. A user creates a booking for a listing.
+ *
+ * Request Body:
+ * {
+ * "listing_id": "the_id_of_the_listing_to_book",
+ * "start_date": "YYYY-MM-DD",
+ * "end_date": "YYYY-MM-DD"
+ * }
+ */
+app.post("/api/booking/create", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id; // Get the user ID from the authenticated session
+  const { listing_id, start_date, end_date } = req.body;
+
+  // --- Input Validation ---
+  if (!listing_id || !start_date || !end_date) {
+    return res
+      .status(400)
+      .json({ error: "listing_id, start_date, and end_date are required." });
+  }
+
+  const startDate = new Date(start_date);
+  const endDate = new Date(end_date);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return res.status(400).json({
+      error: "Invalid date format. Please use YYYY-MM-DD.",
+    });
+  }
+
+  if (endDate <= startDate) {
+    return res
+      .status(400)
+      .json({ error: "End date must be after start date." });
+  }
+  // --- End Validation ---
+
+  try {
+    // Generate a new unique booking_id
+    const booking_id = crypto.randomUUID();
+
+    const query = `
+      INSERT INTO "booking" (
+        booking_id,
+        listing_id,
+        user_id,
+        start_date,
+        end_date
+      )
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+    // The 'status' column will default to 'Pending' as per your table schema.
+
+    const values = [booking_id, listing_id, user_id, startDate, endDate];
+
+    const result = await dbConnection.query(query, values);
+
+    // Send back the newly created booking data
+    res.status(201).json(result.rows[0]); // 201 Created
+  } catch (err) {
+    console.error("Error creating booking:", err);
+    // Check for foreign key violation (listing_id doesn't exist)
+    if (err.code === "23503") {
+      return res.status(404).json({
+        error:
+          "Listing not found. Cannot create booking for non-existent listing.",
+      });
+    }
+    // Add check for date range overlaps if needed (more complex query)
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [DELETE] /api/booking/:bookingId
+ * Deletes a specific booking.
+ *
+ * This endpoint is protected. A user can only delete their *own* bookings.
+ * The booking ID is passed as a URL parameter.
+ *
+ * Note: A listing *owner* would need a different endpoint/logic
+ * to delete (or 'reject') a booking.
+ */
+app.delete("/api/booking/:bookingId", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id; // Get the user ID from the authenticated session
+  const { bookingId } = req.params; // Get the booking ID from the URL
+
+  // --- Input Validation ---
+  if (!bookingId) {
+    return res.status(400).json({ error: "Booking ID is required." });
+  }
+  // --- End Validation ---
+
+  try {
+    // The query ensures that the user can ONLY delete a booking
+    // that both exists (matches booking_id) AND belongs to them (matches user_id).
+    const query = `
+      DELETE FROM "booking"
+      WHERE booking_id = $1 AND user_id = $2
+      RETURNING booking_id;
+    `;
+    const values = [bookingId, user_id];
+
+    const result = await dbConnection.query(query, values);
+
+    // If rowCount is 0, it means either:
+    // 1. The booking doesn't exist.
+    // 2. The booking exists, but this user didn't make it.
+    if (result.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ error: "Booking not found or user not authorized." });
+    }
+
+    // Send back a success message
+    res.status(200).json({
+      message: "Booking deleted successfully.",
+      bookingId: result.rows[0].booking_id,
+    });
+  } catch (err) {
+    console.error("Error deleting booking:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/listings/my-listings
+ * Fetches all listings created by the currently authenticated user.
+ *
+ * This endpoint is protected and requires authentication.
+ */
+app.get("/api/listings/my-listings", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id; // Get the user ID from the authenticated session
+
+  try {
+    const query = `
+      SELECT *
+      FROM "listing"
+      WHERE user_id = $1
+      ORDER BY "title" ASC;
+    `;
+    const values = [user_id];
+
+    const result = await dbConnection.query(query, values);
+
+    // Send back the list of listings (will be an empty array if none are found)
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching user's listings:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/bookings/pending
+ * Fetches all 'Pending' bookings for the authenticated user.
+ */
+app.get("/api/bookings/pending", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const query = `
+      SELECT * FROM "bookings"
+      WHERE user_id = $1 AND status = 'Pending'
+    `;
+    const values = [user_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching pending bookings:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/bookings/approved
+ * Fetches all 'Approved' (upcoming) bookings for the authenticated user.
+ */
+app.get("/api/bookings/approved", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const query = `
+      SELECT * FROM "bookings"
+      WHERE user_id = $1 AND status = 'Approved'
+    `;
+    const values = [user_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching approved bookings:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/bookings/past
+ * Fetches all 'Completed' or 'Rejected' bookings for the authenticated user.
+ */
+app.get("/api/bookings/past", isAuthenticated, async (req, res) => {
+  const user_id = req.user.id;
+
+  try {
+    const query = `
+      SELECT * FROM "bookings"
+      WHERE user_id = $1 AND (status = 'Completed' OR status = 'Rejected')
+    `;
+    const values = [user_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching past bookings:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/bookings/requests
+ * Fetches all 'Pending' booking requests for listings owned by the
+ * authenticated user (for hosts).
+ */
+app.get("/api/bookings/requests", isAuthenticated, async (req, res) => {
+  const host_id = req.user.id; // This is the host's user ID
+
+  try {
+    // This query joins bookings with listings to ensure the user
+    // only gets requests for listings they own.
+    const query = `
+      SELECT b.*
+      FROM "bookings" b
+      JOIN "listing" l ON b.listing_id = l.listing_id
+      WHERE l.user_id = $1 AND b.status = 'Pending';
+    `;
+    const values = [host_id];
+    const result = await dbConnection.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching booking requests:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [PUT] /api/booking/:bookingId
+ * Updates the status of a booking (e.g., 'Approved' or 'Rejected').
+ *
+ * This endpoint is for hosts. It securely checks that the host
+ * owns the listing associated with the booking before updating.
+ *
+ * Request Body:
+ * {
+ * "status": "Approved" | "Rejected"
+ * }
+ */
+app.put("/api/booking/:bookingId", isAuthenticated, async (req, res) => {
+  const host_id = req.user.id; // The person making the request
+  const { bookingId } = req.params;
+  const { status } = req.body;
+
+  // --- Input Validation ---
+  if (!status || (status !== "Approved" && status !== "Rejected")) {
+    return res
+      .status(400)
+      .json({ error: "Invalid status. Must be 'Approved' or 'Rejected'." });
+  }
+  // --- End Validation ---
+
+  try {
+    // This is a secure update. It joins the tables to ensure
+    // the authenticated user (host_id) owns the listing
+    // that the booking (bookingId) belongs to.
+    const query = `
+      UPDATE "bookings" b
+      SET status = $1
+      FROM "listing" l
+      WHERE b.listing_id = l.listing_id
+        AND b.booking_id = $2
+        AND l.user_id = $3
+      RETURNING b.*;
+    `;
+    const values = [status, bookingId, host_id];
+
+    const result = await dbConnection.query(query, values);
+
+    // If rowCount is 0, the booking wasn't found or the user wasn't authorized.
+    if (result.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ error: "Booking not found or user not authorized." });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error updating booking status:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [GET] /api/listings/search
+ * Searches for listings based on location, availability, and guest count.
+ *
+ * Query Parameters:
+ * - address (string, required): Street address
+ * - city (string, required): City
+ * - province (string, required): Province/State
+ * - postal_code (string, required): Postal/Zip code
+ * - range (number, optional): Search radius in km. Defaults to 25.
+ * - guests (number, optional): Minimum guest capacity. Defaults to 1.
+ * - checkin (string, optional): Check-in date (YYYY-MM-DD).
+ * - checkout (string, optional): Check-out date (YYYY-MM-DD).
+ *
+ * (checkin and checkout must be provided together)
+ */
+app.get("/api/listings/search", async (req, res) => {
+  const {
+    address,
+    city,
+    province,
+    postal_code,
+    checkin,
+    checkout,
+    guests,
+    range,
+  } = req.query;
+
+  // --- 1. Validation ---
+  if (!address || !city || !province || !postal_code) {
+    return res.status(400).json({
+      error: "address, city, province, and postal_code are required.",
+    });
+  }
+
+  // --- 2. Geocode the search address ---
+  let centerCoordinates;
+  try {
+    centerCoordinates = await getCoordinates(
+      address,
+      city,
+      province,
+      postal_code
+    );
+    if (!centerCoordinates) {
+      return res
+        .status(400)
+        .json({ error: "Invalid address or address not found." });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(503).json({ error: "Geocoding service unavailable." });
+  }
+
+  try {
+    const centerLat = centerCoordinates.latitude;
+    const centerLng = centerCoordinates.longitude;
+    const searchRadius = parseFloat(range || 25);
+    const minGuests = parseInt(guests || 1);
+
+    // --- 3. Build the dynamic SQL query ---
+    let paramIndex = 1;
+    const values = [];
+
+    // Base query with Haversine formula (great-circle distance)
+    // to calculate distance in kilometers.
+    let baseQuery = `
+      SELECT
+        l.*,
+        c.latitude,
+        c.longitude,
+        ( 6371 * acos(
+            cos(radians($${paramIndex++})) * cos(radians(c.latitude))
+            * cos(radians(c.longitude) - radians($${paramIndex++}))
+            + sin(radians($${paramIndex++})) * sin(radians(c.latitude))
+        ) ) AS distance
+      FROM
+        "listing" l
+      JOIN
+        "coordinates" c ON l.listing_id = c.listing_id
+    `;
+    values.push(centerLat, centerLng, centerLat); // Lat/Lng are used multiple times
+
+    const whereClauses = [];
+
+    // --- Guest Filter ---
+    whereClauses.push(`l.guest_limit >= $${paramIndex++}`);
+    values.push(minGuests);
+
+    // --- Availability (Date) Filter ---
+    // Only add this filter if both checkin and checkout are provided
+    if (checkin && checkout) {
+      // Find listings that do NOT have an 'Approved' or 'Pending' booking
+      // that overlaps with the requested date range.
+      // Overlap logic: (ExistingStart < NewEnd) AND (ExistingEnd > NewStart)
+      whereClauses.push(`
+        NOT EXISTS (
+          SELECT 1
+          FROM "bookings" b
+          WHERE b.listing_id = l.listing_id
+            AND (b.status = 'Pending' OR b.status = 'Approved')
+            AND (b.start_date < $${paramIndex++} AND b.end_date > $${paramIndex++})
+        )
+      `);
+      values.push(checkout, checkin); // Note: checkout is $${paramIndex}, checkin is $${paramIndex+1}
+    }
+
+    // --- Combine WHERE clauses ---
+    if (whereClauses.length > 0) {
+      baseQuery += " WHERE " + whereClauses.join(" AND ");
+    }
+
+    // --- Add HAVING clause for distance (must be after WHERE) ---
+    baseQuery += ` HAVING distance <= $${paramIndex++}`;
+    values.push(searchRadius);
+
+    // --- Add ordering ---
+    baseQuery += " ORDER BY distance ASC;";
+
+    // --- 4. Execute the query ---
+    const result = await dbConnection.query(baseQuery, values);
+
+    // --- 5. Return results ---
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error during search:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * [PUT] /api/booking/:bookingId
+ * Gets all listings for a user
+ *
+ * Request Body:
+ * {
+ * "status": "Approved" | "Rejected"
+ * }
+ */
+app.get("/api/listings", isAuthenticated, async (req, res) => {
+  try {
+    const host_id = req.user.id;
+
+    if (!host_id) {
+      return res.status(400).json({ error: "User ID missing in headers" });
+    }
+
+    const query = `
+      SELECT *
+      FROM "listing"
+      WHERE user_id = $1
+      ORDER BY listing_id DESC;
+    `;
+    const result = await dbConnection.query(query, [host_id]);
+
+    return res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching user listings:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 app.listen(process.env.PORT || 3000, () => {
   console.log(
     "Listening on: " +

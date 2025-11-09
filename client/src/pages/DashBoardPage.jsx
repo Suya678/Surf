@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Bell,
 } from "lucide-react";
+import { authClient } from "../lib/auth";
 
 export default function DashBoardPage() {
   const [activeTab, setActiveTab] = useState("overview");

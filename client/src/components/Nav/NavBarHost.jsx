@@ -1,38 +1,76 @@
-import { authClient } from "../../lib/auth";
 import { Link } from "react-router";
 import LogoutButton from "../LogoutButton";
 import NavLinks from "./NavLinks";
 
-const NavBar = () => {
-  const { data: session } = authClient.useSession();
-
+const NavBarHost = ({ onAddListingClick }) => {
   return (
-    <div className="navbar bg-base-100 shadow-sm">
-      <div className="flex-1">
-        <a className="btn btn-ghost text-xl">Surf</a>
+    <div className="navbar bg-base-100 shadow-sm h-16 px-4">
+      {/* Navbar Start */}
+      <div className="navbar-start">
+        <div className="dropdown">
+          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h8m-8 6h16"
+              />
+            </svg>
+          </div>
+          <ul
+            tabIndex="-1"
+            className="menu menu-bg dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-2 shadow"
+          >
+            <NavLinks />
+          </ul>
+        </div>
+        <Link to="/" className="flex items-center ml-2">
+          <img
+            src="/HomeSurfLogo.png"
+            className="h-24 w-auto"
+            alt="HomeSurf Logo"
+          />
+        </Link>
       </div>
-      <div className="flex-none">
-        <ul className="menu menu-horizontal px-1">
-          <li>
-            <a>Link</a>
-          </li>
-          <li>
-            <details>
-              <summary>Parent</summary>
-              <ul className="bg-base-100 rounded-t-none p-2">
-                <li>
-                  <a>Link 1</a>
-                </li>
-                <li>
-                  <a>Link 2</a>
-                </li>
-              </ul>
-            </details>
-          </li>
+
+      {/* Navbar Center */}
+      <div className="navbar-center hidden lg:flex">
+        <ul className="menu menu-horizontal px-1 text-lg">
+          <NavLinks />
         </ul>
+      </div>
+
+      {/* Navbar End */}
+      <div className="navbar-end space-x-3">
+        <button
+          onClick={onAddListingClick}
+          className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Add listing
+        </button>
+
+        <Link to="/dashboard">
+          <button className="btn btn-sm">Dashboard</button>
+        </Link>
+
+        <Link to="/home">
+          <button className="btn btn-sm">About</button>
+        </Link>
+
+        {/* LogoutButton styled consistently */}
+        <Link to="/Logout">
+          <button className="btn btn-sm">Logout</button>
+        </Link>
       </div>
     </div>
   );
 };
 
-export default NavBar;
+export default NavBarHost;
