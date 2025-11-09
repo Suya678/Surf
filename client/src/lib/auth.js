@@ -2,7 +2,7 @@ import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
   // This should be base url of the server
-  baseURL: "http://localhost:3000/api/auth",
+  baseURL: `${import.meta.env.VITE_SERVER_BASE_URL}/api/auth`,
 });
 
 /**
@@ -12,7 +12,7 @@ export const handleLogin = async (provider) => {
   console.log(provider);
   await authClient.signIn.social({
     provider: provider,
-    callbackURL: "http://localhost:5173/dashboard",
+    callbackURL: `${import.meta.env.VITE_CLIENT_BASE_URL}/dashboard`,
     /* TODO, optional
       errorCallbackURL: "/error",
       newUserCallbackURL: "/welcome",
