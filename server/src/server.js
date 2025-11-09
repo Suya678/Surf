@@ -16,7 +16,7 @@ app.use(
 );
 
 // Just checking the if db is connected, it will throw an error if not
-await dbConnection.query("Select 1");
+await dbConnection.query(`Select 1`);
 
 app.all("/api/auth/{*any}", toNodeHandler(auth));
 

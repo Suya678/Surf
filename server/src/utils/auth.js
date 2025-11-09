@@ -21,11 +21,13 @@ const auth = betterAuth({
     additionalFields: {
       accountType: {
         type: "string",
-        required: true,
+        required: false,
+        input: false,
       },
       onboardingCompleted: {
         type: "boolean",
         defaultValue: false,
+        required: false,
       },
     },
   },
