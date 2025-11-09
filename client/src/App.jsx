@@ -1,62 +1,78 @@
 import "./App.css";
-import { Route, Routes } from "react-router";
+import { Route, Routes, Navigate } from "react-router";
 import HomePage from "./pages/HomePage";
 import { authClient } from "./lib/auth";
 import LoginPage from "./pages/LoginPage";
 import PageLoader from "./components/PageLoader";
-import { Navigate } from "react-router";
 import AboutPage from "./pages/AboutPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import { useEffect, useState } from "react";
+import DashBoardPage from "./pages/DashBoardPage";
 
 function App() {
   const { data: session, isPending } = authClient.useSession();
-  const [isOnboarded, setIsOnboarded] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(null); // null = loading
 
-  useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      let navigate = Navigate();
-
-      if (session?.user) {
-        try {
-          const res = await fetch("/api/user/onboarding-status", {
-            credentials: "include",
-          });
-          const data = await res.json();
-          if (data.isOnboarded) {
-            setIsOnboarded(data.isOnboarded);
-            navigate("/home");
-          } else {
-            navigate("/onboarding");
-          }
-          setIsOnboarded(data.isOnboarded);
-        } catch (err) {
-          console.error("Failed to check onboarding status:", err);
-          setIsOnboarded(false);
-        }
-      } else {
-        setIsOnboarded(false); // Reset when logged out
-      }
-    };
-    checkOnboardingStatus();
-  }, [session]);
-
-  if (isPending) return <PageLoader />;
+  // Show loader only while checking auth
+  if (isPending) {
+    return <PageLoader />;
+  }
 
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          !session ? (
+            <Navigate to="/home" replace />
+          ) : !session.user.onboardingCompleted ? (
+            <Navigate to="/onboarding" replace />
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
 
-        <Route
-          path="/login"
-          element={!session ? <LoginPage /> : <Navigate to="/home" />}
-        />
-      </Routes>
-    </>
+      {/* Public home page - accessible to all */}
+      <Route path="/home" element={<HomePage />} />
+
+      {/* Public about page */}
+      <Route path="/about" element={<AboutPage />} />
+
+      {/* Onboarding - only for authenticated users who haven't onboarded */}
+      <Route
+        path="/onboarding"
+        element={
+          !session ? (
+            <Navigate to="/home" replace />
+          ) : session.user.onboardingCompleted ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <OnboardingPage />
+          )
+        }
+      />
+
+      {/* Login - only for unauthenticated users */}
+      <Route
+        path="/login"
+        element={session ? <Navigate to="/" replace /> : <LoginPage />}
+      />
+
+      {/* Dashboard - only for authenticated + onboarded users */}
+      <Route
+        path="/dashboard"
+        element={
+          !session ? (
+            <Navigate to="/home" replace />
+          ) : !session.user.onboardingCompleted ? (
+            <Navigate to="/onboarding" replace />
+          ) : (
+            <DashBoardPage />
+          )
+        }
+      />
+    </Routes>
   );
 }
 

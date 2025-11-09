@@ -98,44 +98,63 @@ app.get("/api/user/check-onboarding", isAuthenticated, async (req, res) => {
  * `req.user.id` instead of passing it in the body.
  */
 app.post("/api/user/update-onboarding", isAuthenticated, async (req, res) => {
-  const { accountType, onboardingCompleted } = req.body;
+  const { accountType, age, gender, race, bio } = req.body;
   const { id } = req.user; // Get the user ID from the authenticated session
+  const ageParsed = Number(age);
 
   // --- Input Validation ---
   // We no longer need to check for ID, as the middleware guarantees it
 
-  if (accountType !== "guest" && accountType !== "host") {
-    return res
-      .status(400)
-      .json({ error: "Invalid accountType. Must be 'guest' or 'host'." });
-  }
-
-  if (typeof onboardingCompleted !== "boolean") {
-    return res
-      .status(400)
-      .json({ error: "onboardingCompleted must be a boolean (true or false)." });
+  // Optional: Add more specific validation as needed
+  if (age && typeof ageParsed !== "number") {
+    return res.status(400).json({ error: "Age must be a number." });
   }
   // --- End Validation ---
 
   try {
+    // This query performs an "UPSERT"
+    // It tries to INSERT a new row.
+    // If a row with the same `id` already exists (ON CONFLICT),
+    // it will UPDATE that existing row with the new values.
     const query = `
-      UPDATE "user"
-      SET "accountType" = $1, "onboardingCompleted" = $2, "updatedAt" = CURRENT_TIMESTAMP
-      WHERE id = $3
-      RETURNING id, name, email, "accountType", "onboardingCompleted";
-    `;
-    const values = [accountType, onboardingCompleted, id];
+WITH upserted_info AS (
+  INSERT INTO "user_info" (id, age, gender, race, bio)
+  VALUES ($1, $2, $3, $4, $5)
+  ON CONFLICT (id) DO UPDATE SET
+    age = EXCLUDED.age,
+    gender = EXCLUDED.gender,
+    race = EXCLUDED.race,
+    bio = EXCLUDED.bio
+  RETURNING *
+)
+UPDATE "user"
+SET "onboardingCompleted" = TRUE,
+    "accountType" = $6
+WHERE id = $1
+RETURNING *;
+`;
+
+    const values = [
+      id,
+      ageParsed || null,
+      gender || null,
+      race || null,
+      bio || null,
+      accountType || null,
+    ];
 
     const result = await dbConnection.query(query, values);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "User not found." });
-    }
-
-    // Send back the updated user data
+    // Send back the inserted/updated user info data
     res.status(200).json(result.rows[0]);
   } catch (err) {
-    console.error("Error updating user onboarding:", err);
+    console.error("Error upserting user info:", err);
+    // Check for foreign key violation (user ID doesn't exist in 'user' table)
+    if (err.code === "23503") {
+      return res.status(404).json({
+        error: "User not found. Cannot update info for non-existent user.",
+      });
+    }
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -161,7 +180,7 @@ app.post("/api/user/update-onboarding", isAuthenticated, async (req, res) => {
  * `req.user.id` instead of passing it in the body.
  */
 app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
-  const { age, gender, race, bio } = req.body;
+  const { accountType, age, gender, race, bio } = req.body;
   const { id } = req.user; // Get the user ID from the authenticated session
 
   // --- Input Validation ---
@@ -190,13 +209,7 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
     `;
     // Note: `EXCLUDED` refers to the values from the original INSERT attempt.
     // We pass `null` if a value is not provided in the request body.
-    const values = [
-      id,
-      age || null,
-      gender || null,
-      race || null,
-      bio || null,
-    ];
+    const values = [id, age || null, gender || null, race || null, bio || null];
 
     const result = await dbConnection.query(query, values);
 
@@ -206,9 +219,9 @@ app.post("/api/user/update-info", isAuthenticated, async (req, res) => {
     console.error("Error upserting user info:", err);
     // Check for foreign key violation (user ID doesn't exist in 'user' table)
     if (err.code === "23503") {
-      return res
-        .status(404)
-        .json({ error: "User not found. Cannot update info for non-existent user." });
+      return res.status(404).json({
+        error: "User not found. Cannot update info for non-existent user.",
+      });
     }
     res.status(500).json({ error: "Internal server error" });
   }
@@ -297,9 +310,9 @@ app.post("/api/listing/create", isAuthenticated, async (req, res) => {
     console.error("Error creating listing:", err);
     // Check for foreign key violation (user ID doesn't exist in 'user' table)
     if (err.code === "23503") {
-      return res
-        .status(404)
-        .json({ error: "User not found. Cannot create listing for non-existent user." });
+      return res.status(404).json({
+        error: "User not found. Cannot create listing for non-existent user.",
+      });
     }
     res.status(500).json({ error: "Internal server error" });
   }
@@ -356,5 +369,9 @@ app.delete("/api/listing/:listingId", isAuthenticated, async (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000, () => {
-  console.log("Listening on: " + (process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 3000}`));
+  console.log(
+    "Listening on: " +
+      (process.env.BETTER_AUTH_URL ||
+        `http://localhost:${process.env.PORT || 3000}`)
+  );
 });

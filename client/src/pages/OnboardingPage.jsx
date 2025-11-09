@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
-import { authClient } from "../lib/authClient"; // if you're using Better Auth
-
+import { authClient } from "../lib/auth"; // if you're using Better Auth
+import { useNavigate } from "react-router";
 const OnboardingPage = () => {
   const {
     register,
@@ -18,12 +18,30 @@ const OnboardingPage = () => {
   });
 
   const accountType = watch("accountType");
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     console.log("Submitting:", data);
+    const { accountType, age, gender, bio, race } = data;
 
     try {
-    } catch (err) {}
+      const res = await fetch(
+        `${import.meta.env.VITE_SERVER_BASE_URL}/api/user/update-onboarding`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include",
+        }
+      );
+
+      const result = await res.json();
+      console.log("Success:", result);
+      // This is a quick fix, need to make a better one later
+      window.location.href = "/dashboard";
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -92,7 +110,7 @@ const OnboardingPage = () => {
                 <span className="label-text font-bold text-base">Gender</span>
               </label>
               <select
-                {...register("gender")}
+                {...register("gender", { required: "gender is required" })}
                 className="select select-bordered select-lg w-full border-2 focus:border-primary"
               >
                 <option value="">Select gender</option>
@@ -112,7 +130,7 @@ const OnboardingPage = () => {
                 <span className="label-text-alt">Optional</span>
               </label>
               <select
-                {...register("race")}
+                {...register("race", { required: "race is required" })}
                 className="select select-bordered select-lg w-full border-2 focus:border-primary"
               >
                 <option value="">Select race/ethnicity</option>
@@ -132,9 +150,10 @@ const OnboardingPage = () => {
             {/* BIO */}
             <div className="form-control">
               <textarea
-                {...register("bio")}
+                {...register("bio", { required: "Bio is required" })}
                 className="textarea textarea-bordered textarea-lg h-32 border-2 focus:border-primary"
                 placeholder="Tell us about yourself"
+                required
               />
             </div>
 

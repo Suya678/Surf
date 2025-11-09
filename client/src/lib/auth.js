@@ -10,10 +10,9 @@ export const authClient = createAuthClient({
  */
 export const handleLogin = async (provider) => {
   console.log(provider);
-  console.log(import.meta.env.VITE_SERVER_BASE_URL);
   await authClient.signIn.social({
     provider: provider,
-    callbackURL: "http://localhost:5173/home",
+    callbackURL: "http://localhost:5173/dashboard",
     /* TODO, optional
       errorCallbackURL: "/error",
       newUserCallbackURL: "/welcome",

@@ -30,6 +30,18 @@ const auth = betterAuth({
         required: false,
       },
     },
+    session: {
+      additionalFields: {
+        accountType: {
+          type: "string",
+          required: false,
+        },
+        onboardingCompleted: {
+          type: "boolean",
+          required: false,
+        },
+      },
+    },
   },
 });
 export default auth;
