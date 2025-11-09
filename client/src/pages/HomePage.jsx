@@ -9,7 +9,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen" data-theme="autumn">
       {/* Navbar */}
-      {!session ? <NavBar /> : <NavBarHost />}
+      {!session ? (
+        <NavBar />
+      ) : session.user.accountType === "Host" ? (
+        <NavBarHost />
+      ) : (
+        <NavBarGuest />
+      )}
       {/* Hero Section */}
       <section className="hero min-h-screen bg-base-200">
         <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex-col lg:flex-row-reverse gap-8 lg:gap-16">

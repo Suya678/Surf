@@ -35,6 +35,7 @@ export default function HostDashboardPage() {
 
       if (!res.ok) throw new Error("Failed to fetch listings");
       const data = await res.json();
+      console.log("Fetched listings:", data);
       setListings(data);
     } catch (err) {
       console.error(err);
@@ -153,7 +154,7 @@ export default function HostDashboardPage() {
                       {/* Location & Guest Info */}
                       <div className="text-xs opacity-60 space-y-1 mb-4">
                         <p>
-                          📍 {listing.city}, {listing.province}
+                          {`📍 ${listing.address}, ${listing.city} ${listing.province}`}
                         </p>
                         <p>👥 Up to {listing.guest_limit} guests</p>
                       </div>
