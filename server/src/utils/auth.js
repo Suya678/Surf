@@ -5,6 +5,7 @@ import "dotenv/config";
 
 export const auth = betterAuth({
   database: dbConnection,
+  baseURL: process.env.BETTER_AUTH_URL,
   plugins: [openAPI()],
   emailAndPassword: {
     enabled: false,
