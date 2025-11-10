@@ -28,6 +28,10 @@ export const auth = betterAuth({
       },
     },
   },
+  cookies: {
+    sameSite: "none",
+    secure: true,
+  },
 });
 
 export default auth;
