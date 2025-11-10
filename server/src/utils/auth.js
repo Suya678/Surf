@@ -13,6 +13,11 @@ console.log("====================================");
 export const auth = betterAuth({
   database: dbConnection,
   baseURL: process.env.BETTER_AUTH_URL,
+  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+  advanced: {
+    useSecureCookies: true,
+    cookieSameSite: "none",
+  },
   plugins: [openAPI()],
   emailAndPassword: {
     enabled: false,
