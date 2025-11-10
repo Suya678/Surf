@@ -7,30 +7,27 @@ services:
   # --- Your Node.js Web Application ---
   - name: web
     build:
-      # Use nixpacks, Railway's default buildpack, which auto-detects Node.js
+      # Use nixpacks, Railway's default buildpack
       builder: nixpacks
-      # Explicitly define the build command (runs after dependencies are installed)
-      buildCommand: npm install
-      # --- Add Nixpacks config to be explicit ---
-      # This tells the builder (Nixpacks) what start command to use
-      # This is an extra layer of configuration to ensure the correct
-      # start command is baked into the build image.
-      nixpacksConfig:
-        start:
-          cmd: node server.js
+      # Build from the server directory
+      buildCommand: cd server && npm install
     deploy:
-      # The command to run to start your application
-      # This *should* override any other detected start command.
-      startCommand: node server.js
-      # Use the health check endpoint you defined in server.js
+      # CORRECTED: The actual path to your server file
+      startCommand: cd server && node src/server.js
+      # Use the health check endpoint
       healthcheckPath: /
-      # Give the service up to 2 minutes to respond to the health check
-      healthcheckTimeout: 120
-      # Restart the app if it fails the health check
+      # Give the service time to start up
+      healthcheckTimeout: 300
+      # Restart the app if it fails
       restartPolicyType: ON_FAILURE
+    # Define environment variables needed
+    envVars:
+      - name: NODE_ENV
+        value: production
+      - name: PORT
+        value: "3000"
 
   # --- Your PostgreSQL Database ---
   - name: postgres
     image: postgres:15
-    # Railway will automatically link this service and provide the DB_URI
-    # to your 'web' service.
+    # Railway will automatically link this service and provide the DATABASE_URL
