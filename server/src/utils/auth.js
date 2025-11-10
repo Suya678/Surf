@@ -17,6 +17,12 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
   },
+  onInit: () => {
+    console.log("Better Auth initialized:");
+    console.log("baseURL:", process.env.BACKEND_URL);
+    console.log("trustedOrigins:", [process.env.CLIENT_URL]);
+    console.log("secret exists:", !!process.env.BETTER_AUTH_SECRET);
+  },
   user: {
     additionalFields: {
       accountType: {
