@@ -15,8 +15,14 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   advanced: {
-    useSecureCookies: true,
-    cookieSameSite: "none",
+    cookies: {
+      state: {
+        attributes: {
+          sameSite: "none",
+          secure: true,
+        },
+      },
+    },
   },
   plugins: [openAPI()],
   emailAndPassword: {
