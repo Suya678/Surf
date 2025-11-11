@@ -6,24 +6,35 @@ import { auth } from "./utils/auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 // Import your routes
 import userRoutes from "./routes/userRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 
-console.log("Working directory:", process.cwd());
-console.log(
-  "DATABASE_URL:",
-  process.env.DATABASE_URI?.substring(0, 30) + "..."
-);
 console.log("NODE_ENV:", process.env.NODE_ENV);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+// Security
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
-// Middleware
-app.use(express.json());
+// Rate Limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 100, // limit each IP to 100 requests per 15 minutes
+  message: { error: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(cookieParser());
 
 // CORS - now allowing same origin
@@ -51,9 +62,12 @@ app.use(
     exposedHeaders: ["Set-Cookie"],
   })
 );
+// Rate limiter
+app.use(limiter);
 
 // ===== API ROUTES (MUST BE FIRST!) =====
 app.all("/api/auth/{*any}", toNodeHandler(auth));
+app.use(express.json());
 app.use("/api/user", userRoutes);
 app.use("/api/listing", listingRoutes);
 app.use("/api/booking", bookingRoutes);
@@ -73,8 +87,7 @@ app.get("/{*any}", (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 Frontend: http://localhost:${PORT}`);
-  console.log(`🔌 API: http://localhost:${PORT}/api`);
+  console.log(`📱 Frontend: ${process.env.CLIENT_URL}`);
+  console.log(`🔌 Backend: ${process.env.CLIENT_URL}/api`);
 });
-
 export default app;
