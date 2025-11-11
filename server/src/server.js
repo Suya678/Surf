@@ -1,105 +1,80 @@
-/**
- * @file server.js
- * @description Main Express server entry point.
- * This file is responsible for:
- * - Initializing the Express app
- * - Setting up middleware (CORS, JSON parser)
- * - Checking the database connection
- * - Mounting all API routes
- * - Starting the server
- */
-
-import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import auth from "./utils/auth.js";
-import { dbConnection } from "./db/dbClient.js";
+import cookieParser from "cookie-parser";
 import { toNodeHandler } from "better-auth/node";
-import isAuthenticated from "./middleware/isAuthenticated.js";
-
-// Import route handlers
+import { auth } from "./utils/auth.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import "dotenv/config";
+// Import your routes
 import userRoutes from "./routes/userRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
-import cookieParser from "cookie-parser";
-const app = express();
-const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 
-// --- Middleware Setup ---
+console.log("Working directory:", process.cwd());
+console.log(
+  "DATABASE_URL:",
+  process.env.DATABASE_URI?.substring(0, 30) + "..."
+);
+console.log("NODE_ENV:", process.env.NODE_ENV);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+
+// CORS - now allowing same origin
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
-  "http://localhost:5173", // Always allow local dev
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:5173", // For local dev
   "http://localhost:3000",
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
+    origin: (origin, callback) => {
+      // Allow same-origin requests (no origin header)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
-        return callback(new Error(msg), false);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed`));
       }
-      return callback(null, true);
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["Set-Cookie"],
   })
 );
-app.use(cookieParser());
 
-app.use("/api/auth/{*any}", (req, res, next) => {
-  console.log("Auth request:", {
-    path: req.path,
-    method: req.method,
-    cookies: req.cookies,
-    origin: req.headers.origin,
-  });
-  next();
-});
-
-// Authentication routes (handled by better-auth)
+// ===== API ROUTES (MUST BE FIRST!) =====
 app.all("/api/auth/{*any}", toNodeHandler(auth));
-
-app.use(express.json());
-
-// --- Database Connection Check ---
-
-try {
-  await dbConnection.query(`Select 1`);
-  console.log("Database connected successfully.");
-} catch (err) {
-  console.error("Database connection failed:", err);
-  process.exit(1); // Exit if DB connection fails
-}
-
-// --- API Routes ---
-
-// Health check endpoint
-app.get("/", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "HomeSurf API",
-    version: "1.0",
-  });
-});
-
-// Mount feature-specific routes
 app.use("/api/user", userRoutes);
 app.use("/api/listing", listingRoutes);
-app.use("/api/listings", listingRoutes); // for /api/listings/search etc.
 app.use("/api/booking", bookingRoutes);
 
-// --- Start Server ---
+// ===== SERVE FRONTEND (AFTER API ROUTES) =====
+const clientDistPath = path.join(__dirname, "../../client/dist");
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log(
-    "Listening on: " +
-      (process.env.BETTER_AUTH_URL ||
-        `http://localhost:${process.env.PORT || 3000}`)
-  );
+// Serve static files from the React app
+app.use(express.static(clientDistPath));
+
+// Handle React routing - return index.html for all non-API routes
+app.get("/{*any}", (req, res) => {
+  res.sendFile(path.join(clientDistPath, "index.html"));
 });
+
+// ===== START SERVER =====
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📱 Frontend: http://localhost:${PORT}`);
+  console.log(`🔌 API: http://localhost:${PORT}/api`);
+});
+
+export default app;

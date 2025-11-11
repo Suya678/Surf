@@ -1,7 +1,7 @@
 import { Pool } from "pg";
-
+import "dotenv/config";
 const { DB_URI } = process.env;
-
+console.log(DB_URI);
 // export const dbConnection = new Pool({
 //   host: PGHOST,
 //   database: PGDATABASE,

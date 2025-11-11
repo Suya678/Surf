@@ -25,7 +25,7 @@ export default function HostDashboardPage() {
     try {
       setLoading(true);
       const res = await fetch(
-        `${import.meta.env.VITE_SERVER_BASE_URL}/api/listings/my-listings`,
+        `${import.meta.env.VITE_SERVER_BASE_URL}/api/listing/my-listings`,
         {
           method: "GET",
           credentials: "include",

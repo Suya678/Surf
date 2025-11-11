@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { dbConnection } from "../db/dbClient.js";
 import { openAPI } from "better-auth/plugins";
-import crypto from "crypto";
+import crypto from "crypto"; // Add this import!
 import "dotenv/config";
 
 console.log("=== Better Auth Environment Check ===");
@@ -10,7 +10,7 @@ console.log("CLIENT_URL:", process.env.CLIENT_URL);
 console.log("BETTER_AUTH_SECRET exists:", !!process.env.BETTER_AUTH_SECRET);
 console.log("GOOGLE_CLIENT_ID exists:", !!process.env.GOOGLE_CLIENT_ID);
 console.log("GOOGLE_CLIENT_SECRET exists:", !!process.env.GOOGLE_CLIENT_SECRET);
-console.log("Node env", process.env.NODE_ENV);
+console.log("Node env:", process.env.NODE_ENV);
 console.log("====================================");
 
 export const auth = betterAuth({
@@ -22,21 +22,30 @@ export const auth = betterAuth({
 
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
+
     database: {
       generateId: () => crypto.randomUUID(),
     },
-    // REMOVE THIS - Don't configure state cookies at all
-    // Let Better Auth use database-only verification
-    // cookies: {
-    //   state: { ... }
-    // },
-  },
 
-  // Add session configuration
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60,
+    cookies: {
+      session_token: {
+        attributes: {
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          path: "/",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        },
+      },
+      state: {
+        attributes: {
+          sameSite: "lax", // Changed from "none"
+          secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          path: "/",
+          maxAge: 60 * 10, // 10 minutes
+        },
+      },
     },
   },
 
@@ -50,8 +59,6 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      // Ensure redirect URI is explicit
-      redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/google`,
     },
   },
 

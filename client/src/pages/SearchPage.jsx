@@ -49,7 +49,7 @@ export default function SearchPage() {
       const res = await fetch(
         `${
           import.meta.env.VITE_SERVER_BASE_URL
-        }/api/listings/search?${queryParams}`,
+        }/api/listing/search?${queryParams}`,
         {
           method: "GET",
           credentials: "include",
