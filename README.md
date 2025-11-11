@@ -47,9 +47,11 @@ It serves two main user groups:
 
 ---
 
-## ⚙️ Setup & Installation
+## 🧩 Try It Out
+- [Live Site](https://surf-3.onrender.com/)  
+- [Demo Video](https://youtu.be/9HL6T2cTTlo)
 
-### 1️⃣ Clone the repo
-```bash
-git clone https://github.com/<yourusername>/surf.git
-cd surf
+---
+
+### 👥 Team CT63-JJADO
+> A collaboration built during our hackathon, focused on **innovation, accessibility, and real-world impact.**
