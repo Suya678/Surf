@@ -1,4 +1,3 @@
-/ utils/auth.js
 import { betterAuth } from "better-auth";
 import { dbConnection } from "../db/dbClient.js";
 import { openAPI } from "better-auth/plugins";
@@ -18,9 +17,9 @@ export const auth = betterAuth({
   database: dbConnection,
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
-  
+
   trustedOrigins: [process.env.CLIENT_URL],
-  
+
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
     database: {
@@ -32,7 +31,7 @@ export const auth = betterAuth({
     //   state: { ... }
     // },
   },
-  
+
   // Add session configuration
   session: {
     cookieCache: {
@@ -40,13 +39,13 @@ export const auth = betterAuth({
       maxAge: 5 * 60,
     },
   },
-  
+
   plugins: [openAPI()],
-  
+
   emailAndPassword: {
     enabled: false,
   },
-  
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -55,7 +54,7 @@ export const auth = betterAuth({
       redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/google`,
     },
   },
-  
+
   user: {
     additionalFields: {
       accountType: {
