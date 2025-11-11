@@ -1,22 +1,25 @@
+// Frontend - auth client
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  // This should be base url of the server
-  baseURL: `${import.meta.env.VITE_SERVER_BASE_URL}/api/auth`,
+  baseURL: import.meta.env.VITE_SERVER_BASE_URL,
+  fetchOptions: {
+    credentials: "include", // Important for cross-origin cookies
+  },
 });
 
 /**
- *  Starts the oauth process using the "provider"
+ * Starts the OAuth process
  */
 export const handleLogin = async (provider) => {
-  console.log(provider);
-  await authClient.signIn.social({
-    provider: provider,
-    callbackURL: `${import.meta.env.VITE_CLIENT_BASE_URL}/dashboard`,
-    /* TODO, optional
-      errorCallbackURL: "/error",
-      newUserCallbackURL: "/welcome",
-      disableRedirect: true,
-      */
-  });
+  try {
+    await authClient.signIn.social({
+      provider: provider,
+      // Use RELATIVE path, not full URL
+      callbackURL: `${import.meta.env.VITE_CLIENT_BASE_URL}/dashboard`,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    // Handle error appropriately
+  }
 };

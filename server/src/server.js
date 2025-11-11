@@ -21,7 +21,7 @@ import isAuthenticated from "./middleware/isAuthenticated.js";
 import userRoutes from "./routes/userRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
-
+import cookieParser from "cookie-parser";
 const app = express();
 const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 
@@ -50,14 +50,18 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   })
 );
+app.use(cookieParser());
 
-app.use(
-  cors({
-    origin: allowedOrigin,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
+app.use("/api/auth/{*any}", (req, res, next) => {
+  console.log("Auth request:", {
+    path: req.path,
+    method: req.method,
+    cookies: req.cookies,
+    origin: req.headers.origin,
+  });
+  next();
+});
+
 // Authentication routes (handled by better-auth)
 app.all("/api/auth/{*any}", toNodeHandler(auth));
 
